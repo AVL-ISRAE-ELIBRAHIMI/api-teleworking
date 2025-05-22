@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property string $nom
  * @property string $prenom
- * @property string $matricule
+ * @property string $manager
+ * @property string $email
  * @property int $departement_id
  * @property int $equipe_id
  * @property string $activity
@@ -36,9 +37,15 @@ class Collaborateur extends Model
 	protected $fillable = [
 		'nom',
 		'prenom',
-		'matricule',
+		'manager',
+		'email',
 		'departement_id',
 		'equipe_id',
 		'activity'
 	];
+	
+	public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'collaborateur_id');
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Services\ListUserReservationService;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -10,9 +11,24 @@ class ReservationController extends Controller
     /**
      * Display a listing of the resource.
      */
+    protected $reservationService;
+
+    public function __construct(ListUserReservationService $reservationService)
+    {
+        $this->reservationService = $reservationService;
+    }
+
     public function index()
     {
-        //
+
+        $collaborateurId = session('user.id');
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+    
+        $reservations = $this->reservationService->getReservationsByCollaborateur($collaborateurId);
+    
+        return response()->json($reservations);
     }
 
     /**

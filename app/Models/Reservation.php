@@ -41,4 +41,15 @@ class Reservation extends Model
 		'date_reservation',
 		'status'
 	];
+
+	public function collaborateur()
+	{
+		return $this->belongsTo(Collaborateur::class, 'collaborateur_id');
+	}
+	
+
+	public function place()
+	{
+		return $this->belongsTo(Place::class, 'place_id');
+	}
 }
