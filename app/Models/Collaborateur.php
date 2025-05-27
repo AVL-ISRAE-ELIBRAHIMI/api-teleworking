@@ -43,9 +43,20 @@ class Collaborateur extends Model
 		'equipe_id',
 		'activity'
 	];
-	
+
 	public function reservations()
-    {
-        return $this->hasMany(Reservation::class, 'collaborateur_id');
-    }
+	{
+		return $this->hasMany(Reservation::class, 'collaborateur_id');
+	}
+
+	public function departement()
+	{
+		return $this->belongsTo(Departement::class, 'departement_id'); // clé étrangère dans la table collaborateurs
+	}
+
+	public function equipe()
+	{
+		return $this->belongsTo(Equipe::class, 'equipe_id'); // clé étrangère dans la table collaborateurs
+	}
+	
 }

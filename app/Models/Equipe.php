@@ -35,4 +35,8 @@ class Equipe extends Model
 		'departement_id',
 		'TL'
 	];
+	public function collaborateur()
+	{
+		return $this->hasMany(Collaborateur::class, 'equipe_id');
+	}
 }

@@ -32,4 +32,8 @@ class Departement extends Model
 		'label',
 		'STL'
 	];
+	public function collaborateur()
+	{
+		return $this->hasMany(Collaborateur::class, 'departement_id');
+	}
 }

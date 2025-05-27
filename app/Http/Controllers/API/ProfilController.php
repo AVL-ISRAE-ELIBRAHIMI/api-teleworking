@@ -3,33 +3,30 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\ListUserReservationService;
+use App\Services\ProfilService;
 use Illuminate\Http\Request;
 
-class ReservationController extends Controller
+class ProfilController extends Controller
 {
+    protected $profilService;
+
+    public function __construct(ProfilService $profilService)
+    {
+        $this->profilService = $profilService;
+    }
+
     /**
      * Display a listing of the resource.
      */
-    protected $reservationService;
-
-    public function __construct(ListUserReservationService $reservationService)
-    {
-        $this->reservationService = $reservationService;
-    }
-
     public function index()
     {
-
         $collaborateurId = session('user.id');
-
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
         }
-        
-        $reservations = $this->reservationService->getReservationsByCollaborateur($collaborateurId);
-        
-        return response()->json($reservations);
+        $userData = $this->profilService->getUserProfile($collaborateurId);
+    
+        return response()->json($userData);
     }
 
     /**

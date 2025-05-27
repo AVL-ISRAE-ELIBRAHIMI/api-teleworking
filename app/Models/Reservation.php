@@ -52,4 +52,5 @@ class Reservation extends Model
 	{
 		return $this->belongsTo(Place::class, 'place_id');
 	}
+	
 }

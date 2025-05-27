@@ -32,4 +32,9 @@ class Place extends Model
 		'label',
 		'departement_id'
 	];
+	public function departement()
+{
+    return $this->belongsTo(Departement::class);
+}
+
 }
