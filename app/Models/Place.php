@@ -29,12 +29,17 @@ class Place extends Model
 	];
 
 	protected $fillable = [
-		'label',
+		'name',
+		'zone',
+		'is_active',
 		'departement_id'
 	];
 	public function departement()
-{
-    return $this->belongsTo(Departement::class);
-}
-
+	{
+		return $this->belongsTo(Departement::class);
+	}
+	public function reservations()
+	{
+		return $this->hasMany(Reservation::class);
+	}
 }

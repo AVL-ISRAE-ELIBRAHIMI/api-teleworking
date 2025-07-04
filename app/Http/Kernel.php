@@ -11,12 +11,14 @@ class Kernel extends HttpKernel
      * The application's global HTTP middleware stack.
      */
     protected $middleware = [
-        \Illuminate\Http\Middleware\HandleCors::class, // native CORS middleware
         \App\Http\Middleware\TrustProxies::class,
+        \Illuminate\Http\Middleware\HandleCors::class, // Active le vrai CORS de Laravel ici
         \Illuminate\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
+
+
 
     /**
      * The application's route middleware groups.
@@ -26,13 +28,13 @@ class Kernel extends HttpKernel
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
+            // \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
         'api' => [
             \Illuminate\Http\Middleware\HandleCors::class, // native CORS middleware
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];

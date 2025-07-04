@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Collaborateur;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
@@ -11,7 +12,7 @@ class WindowsAuthService
 
     public function authenticateUser()
     {
-        
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->windowsAuthUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -29,25 +30,28 @@ class WindowsAuthService
         }
 
         $data = json_decode($response, true);
-
+        
         if (!empty($data)) {
             // Stocker les données importantes dans la session
             Session::put('user.display_name', $data['DisplayName'] ?? null);
             Session::put('user.email', $data['Email'] ?? null);
             Session::put('user.job_title', $data['JobTitle'] ?? null);
             Session::put('user.id', $data['ObjectID'] ?? null);
-
-
+            // Trouver le collaborateur dans la base de données
+            $collaborateur = Collaborateur::where('id', $data['ObjectID'] ?? null)->first();
+            Session::put('user.departement_id', $collaborateur ? $collaborateur->departement_id : null);
+        
+        
             return [
                 'displayName' => $data['DisplayName'] ?? null,
                 'email' => $data['Email'] ?? null,
                 'jobTitle' => $data['JobTitle'] ?? null,
                 'id' => $data['ObjectID'] ?? null,
+                'departement_id' => $collaborateur ? $collaborateur->departement_id : null,
                 'httpCode' => $httpCode,
             ];
         }
 
         throw new \Exception('Invalid response data');
     }
-  
 }

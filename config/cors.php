@@ -2,9 +2,19 @@
 
 return [
 
-    // 'paths' => ['api/*', 'login', 'sanctum/csrf-cookie'],
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout','profil', 'reservations/*'],
-
+    'paths' => ['*'],
+        // 'api/*',
+        // // 'sanctum/csrf-cookie',
+        // 'login',
+        // 'logout',
+        // 'profil',
+        // 'places',
+        // 'salles',
+        // 'reservations',
+        // 'reservations/*',
+        // 'availability/*',
+        // 'seat-booking-type' // Ajoutez cette ligne
+    // ],
     'allowed_methods' => ['*'],
 
     // 'allowed_origins' => ['*'], // ← ou l’URL de ton front

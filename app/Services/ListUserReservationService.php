@@ -27,8 +27,7 @@ class ListUserReservationService
                 return [
                     'id' => $res->id,
                     'date_reservation' => $res->date_reservation->format('d-m-Y'),
-                    'status' => $res->status,
-                    'place_label' => $res->place->label ?? '',
+                    'place_label' => $res->place->name ?? '',
                     'departement_label' => $res->place->departement->label ?? '',
                 ];
             });

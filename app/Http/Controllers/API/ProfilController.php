@@ -21,6 +21,7 @@ class ProfilController extends Controller
     public function index()
     {
         $collaborateurId = session('user.id');
+        dd($collaborateurId);
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
         }
