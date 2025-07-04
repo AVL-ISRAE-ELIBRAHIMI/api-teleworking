@@ -27,4 +27,7 @@ Route::get('/salles', [ReservationController::class, 'getSalles']);
 Route::post('/reservations', [ReservationController::class, 'store']);
 
 Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
 

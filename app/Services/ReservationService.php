@@ -11,6 +11,8 @@ class ReservationService
 {
     public function getMonthlyAvailability(int $year, int $month, int $departementId): array
     {
+        $collaborateurId = session('user.id');
+
         $startDate = Carbon::create($year, $month, 1)->startOfMonth();
         $endDate = Carbon::create($year, $month, 1)->endOfMonth();
 
@@ -37,7 +39,7 @@ class ReservationService
                 $reservation = $place->reservations->firstWhere('date_reservation', $currentDate->format('Y-m-d'));
 
                 $placeAvailability[$day] = $reservation
-                    ? ($reservation->collaborateur_id === auth()->id() ? 'your-booking' : 'others-booking')
+                    ? ($reservation->collaborateur_id === $collaborateurId ? 'your-booking' : 'others-booking')
                     : 'available';
             }
 
@@ -54,7 +56,7 @@ class ReservationService
     public function getDailyAvailability(string $date): array
     {
         $date = Carbon::parse($date);
-
+        $collaborateurId = session('user.id');
         $places = Place::with(['reservations' => function ($query) use ($date) {
             $query->whereDate('date_reservation', $date);
         }])->get();
@@ -68,7 +70,7 @@ class ReservationService
                 'name' => $place->name,
                 'zone' => $place->zone,
                 'status' => $reservation
-                    ? ($reservation->collaborateur_id === auth()->id() ? 'your-booking' : 'others-booking')
+                    ? ($reservation->collaborateur_id === $collaborateurId ? 'your-booking' : 'others-booking')
                     : 'available'
             ];
         }
@@ -77,10 +79,10 @@ class ReservationService
     }
     public function createReservations(array $data): Collection
     {
-         $collaborateurId = session('user.id');
+        $collaborateurId = session('user.id');
         $reservations = collect();
         $dates = $data['dates'];
-        
+
         dd($data, $collaborateurId);
         foreach ($dates as $date) {
             $reservationData = [
