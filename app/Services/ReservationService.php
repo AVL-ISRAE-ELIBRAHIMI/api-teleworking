@@ -9,81 +9,57 @@ use Illuminate\Support\Collection;
 
 class ReservationService
 {
-    public function getMonthlyAvailability(int $year, int $month, int $departementId): array
-    {
-        $collaborateurId = session('user.id');
+   
 
-        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+  public function getMonthlyAvailability($year, $month, $departementId)
+{
+    $firstDay = Carbon::create($year, $month, 1)->startOfDay();
+    $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
-        $daysInMonth = $startDate->daysInMonth;
-        $places = Place::where('departement_id', $departementId)
-            ->with(['reservations' => function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('date_reservation', [$startDate, $endDate]);
-            }])
-            ->get();
+    $places = Place::where('departement_id', $departementId)
+        ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
+            $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
+        }])
+        ->get();
 
-        $availability = [];
+    $availability = [];
 
-        foreach ($places as $place) {
-            $placeAvailability = [];
+    foreach ($places as $place) {
+        $availability[$place->id] = [
+            'name' => $place->name,
+            'zone' => $place->zone,
+            'availability' => [],
+        ];
 
-            for ($day = 1; $day <= $daysInMonth; $day++) {
-                $currentDate = Carbon::create($year, $month, $day);
+        for ($day = 1; $day <= $lastDay->day; $day++) {
+            $date = Carbon::create($year, $month, $day)->toDateString();
 
-                if ($currentDate->isWeekend()) {
-                    $placeAvailability[$day] = 'weekend';
-                    continue;
-                }
-
-                $reservation = $place->reservations->firstWhere('date_reservation', $currentDate->format('Y-m-d'));
-
-                $placeAvailability[$day] = $reservation
-                    ? ($reservation->collaborateur_id === $collaborateurId ? 'your-booking' : 'others-booking')
-                    : 'available';
+            if (Carbon::parse($date)->isWeekend()) {
+                $availability[$place->id]['availability'][$day] = 'weekend';
+                continue;
             }
 
-            $availability[$place->id] = [
-                'name' => $place->name,
-                'zone' => $place->zone,
-                'availability' => $placeAvailability
-            ];
-        }
+            $reservation = $place->reservations->first(function ($res) use ($date) {
+                return Carbon::parse($res->date_reservation)->toDateString() === $date;
+            });
 
-        return $availability;
+            if ($reservation) {
+                $availability[$place->id]['availability'][$day] = 'confirmed';
+            } else {
+                $availability[$place->id]['availability'][$day] = 'available';
+            }
+        }
     }
 
-    public function getDailyAvailability(string $date): array
-    {
-        $date = Carbon::parse($date);
-        $collaborateurId = session('user.id');
-        $places = Place::with(['reservations' => function ($query) use ($date) {
-            $query->whereDate('date_reservation', $date);
-        }])->get();
+    return $availability;
+}
 
-        $availability = [];
-
-        foreach ($places as $place) {
-            $reservation = $place->reservations->first();
-
-            $availability[$place->id] = [
-                'name' => $place->name,
-                'zone' => $place->zone,
-                'status' => $reservation
-                    ? ($reservation->collaborateur_id === $collaborateurId ? 'your-booking' : 'others-booking')
-                    : 'available'
-            ];
-        }
-
-        return $availability;
-    }
     public function createReservations(array $data): Collection
     {
         $collaborateurId = session('user.id');
         $reservations = collect();
         $dates = $data['dates'];
 
-        dd($data, $collaborateurId);
         foreach ($dates as $date) {
             $reservationData = [
                 'collaborateur_id' => $collaborateurId,

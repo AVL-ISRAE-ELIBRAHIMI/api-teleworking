@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('place_id')->constrained('places')->onDelete('cascade');
             $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade');
             $table->date('date_reservation');
+            $table->string('status'); // 'pending', 'confirmed', 'cancelled'
             $table->timestamps();
         });
     }

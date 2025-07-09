@@ -43,7 +43,6 @@ class ReservationController extends Controller
     // 2. Créer des réservations (déjà existante)
     public function store(Request $request)
     {
-        dd($request->all());
         $validated = $request->validate([
             'place_id' => 'required|integer',
             'dates' => 'required|array|min:1',
@@ -51,6 +50,7 @@ class ReservationController extends Controller
         ]);
         $reservations = $this->reservationService->createReservations($validated);
 
+        
         return response()->json([
             'message' => 'Réservations créées avec succès',
             'data' => $reservations
