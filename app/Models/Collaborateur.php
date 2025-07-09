@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Class Collaborateur
  * 
- * @property int $id
+ * @property string $id
  * @property string $nom
  * @property string $prenom
  * @property string $manager

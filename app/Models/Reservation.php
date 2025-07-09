@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * Class Reservation
  * 
  * @property int $id
- * @property int $collaborateur_id
+ * @property string $collaborateur_id
  * @property int $place_id
  * @property int $salle_id
  * @property Carbon $date_reservation
@@ -28,7 +28,6 @@ class Reservation extends Model
 	protected $table = 'reservations';
 
 	protected $casts = [
-		'collaborateur_id' => 'int',
 		'place_id' => 'int',
 		'salle_id' => 'int',
 		'date_reservation' => 'datetime'
