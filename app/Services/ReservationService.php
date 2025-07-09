@@ -11,14 +11,58 @@ class ReservationService
 {
    
 
-  public function getMonthlyAvailability($year, $month, $departementId)
+//   public function getMonthlyAvailability($year, $month, $departementId)
+// {
+//     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
+//     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
+
+//     $places = Place::where('departement_id', $departementId)
+//         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
+//             $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
+//         }])
+//         ->get();
+
+//     $availability = [];
+
+//     foreach ($places as $place) {
+//         $availability[$place->id] = [
+//             'name' => $place->name,
+//             // 'zone' => $place->zone,
+//             'availability' => [],
+//         ];
+
+//         for ($day = 1; $day <= $lastDay->day; $day++) {
+//             $date = Carbon::create($year, $month, $day)->toDateString();
+
+//             if (Carbon::parse($date)->isWeekend()) {
+//                 $availability[$place->id]['availability'][$day] = 'weekend';
+//                 continue;
+//             }
+
+//             $reservation = $place->reservations->first(function ($res) use ($date) {
+//                 return Carbon::parse($res->date_reservation)->toDateString() === $date;
+//             });
+
+//             if ($reservation) {
+//                 $availability[$place->id]['availability'][$day] = 'confirmed';
+//             } else {
+//                 $availability[$place->id]['availability'][$day] = 'available';
+//             }
+//         }
+//     }
+
+//     return $availability;
+// }
+public function getMonthlyAvailability($year, $month, $departementId)
 {
+     $currentUserId = session('user.id');
     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
     $places = Place::where('departement_id', $departementId)
         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
-            $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
+            $query->whereBetween('date_reservation', [$firstDay, $lastDay])
+                  ->with('collaborateur'); // Charger l'utilisateur associé à chaque réservation
         }])
         ->get();
 
@@ -27,7 +71,7 @@ class ReservationService
     foreach ($places as $place) {
         $availability[$place->id] = [
             'name' => $place->name,
-            'zone' => $place->zone,
+            // 'zone' => $place->zone,
             'availability' => [],
         ];
 
@@ -35,7 +79,11 @@ class ReservationService
             $date = Carbon::create($year, $month, $day)->toDateString();
 
             if (Carbon::parse($date)->isWeekend()) {
-                $availability[$place->id]['availability'][$day] = 'weekend';
+                $availability[$place->id]['availability'][$day] = [
+                    'status' => 'weekend',
+                    'reserved_by' => null,
+                    'is_current_user' => false
+                ];
                 continue;
             }
 
@@ -44,16 +92,23 @@ class ReservationService
             });
 
             if ($reservation) {
-                $availability[$place->id]['availability'][$day] = 'confirmed';
+                $availability[$place->id]['availability'][$day] = [
+                    'status' => 'confirmed',
+                    'reserved_by' => $reservation->collaborateur->nom . ' ' . $reservation->collaborateur->prenom,
+                    'is_current_user' => $reservation->collaborateur_id === $currentUserId
+                ];
             } else {
-                $availability[$place->id]['availability'][$day] = 'available';
+                $availability[$place->id]['availability'][$day] = [
+                    'status' => 'available',
+                    'reserved_by' => null,
+                    'is_current_user' => false
+                ];
             }
         }
     }
 
     return $availability;
 }
-
     public function createReservations(array $data): Collection
     {
         $collaborateurId = session('user.id');
