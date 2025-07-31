@@ -28,7 +28,9 @@ Route::post('/auth/authenticate-account', [AuthController::class, 'authenticateW
 Route::middleware(['api.auth'])->group(function () {
     // Reservations
     Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
-    
+    Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
+    Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
+
     // Profile
     Route::get('/profil', [ProfilController::class, 'index']);
     

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
 use App\Models\Place;
+use App\Services\ListSkillTeamReservationService;
+use App\Services\ListTeamReservationService;
 use App\Services\ListUserReservationService;
 use Illuminate\Http\Request;
 use App\Services\ReservationService;
@@ -15,11 +17,15 @@ class ReservationController extends Controller
      * Display a listing of the resource.
      */
     protected $listReservationService;
+    protected $listTeamReservationService;
+    protected $listSkillTeamReservationService;
     protected $reservationService;
 
-    public function __construct(ListUserReservationService $listReservationService, ReservationService $reservationService)
+    public function __construct(ListUserReservationService $listReservationService, ListTeamReservationService $listTeamReservationService, ListSkillTeamReservationService $listSkillTeamReservationService, ReservationService $reservationService)
     {
         $this->listReservationService = $listReservationService;
+        $this->listTeamReservationService = $listTeamReservationService;
+        $this->listSkillTeamReservationService = $listSkillTeamReservationService;
         $this->reservationService = $reservationService;
     }
 
@@ -34,6 +40,32 @@ class ReservationController extends Controller
         }
 
         $reservations = $this->listReservationService->getReservationsByCollaborateur($collaborateurId);
+
+        return response()->json($reservations);
+    }
+    public function index_for_team_leads()
+    {
+
+        $collaborateurId = session('user.id');
+
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+
+        $reservations = $this->listTeamReservationService->getReservationsByTeamLeader($collaborateurId);
+
+        return response()->json($reservations);
+    }
+    public function index_for_skill_team_leads()
+    {
+
+        $collaborateurId = session('user.id');
+
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+
+        $reservations = $this->listSkillTeamReservationService->getReservationsBySkillTeamLeader($collaborateurId);
 
         return response()->json($reservations);
     }
