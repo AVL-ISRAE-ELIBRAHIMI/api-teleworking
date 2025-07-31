@@ -1,25 +1,18 @@
 <?php
 
 return [
-
+    // Allow all paths since you're using web routes for your API
     'paths' => ['*'],
-        // 'api/*',
-        // // 'sanctum/csrf-cookie',
-        // 'login',
-        // 'logout',
-        // 'profil',
-        // 'places',
-        // 'salles',
-        // 'reservations',
-        // 'reservations/*',
-        // 'availability/*',
-        // 'seat-booking-type' // Ajoutez cette ligne
-    // ],
+
     'allowed_methods' => ['*'],
 
-    // 'allowed_origins' => ['*'], // ← ou l’URL de ton front
-    'allowed_origins' => ['http://localhost:8080'],
-
+    // Add common Vue.js development server ports
+    'allowed_origins' => [
+        'http://localhost:8080',  // Default Vue CLI dev server
+        'http://localhost:8081',  // Your current port
+        'http://localhost:3000',  // Alternative dev port
+        'http://localhost:5173',  // Vite dev server default
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -29,6 +22,6 @@ return [
 
     'max_age' => 0,
 
+    // This is crucial for session-based authentication
     'supports_credentials' => true,
-
 ];

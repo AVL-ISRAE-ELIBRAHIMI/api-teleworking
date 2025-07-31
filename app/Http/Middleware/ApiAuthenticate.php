@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
-class Authenticate
+class ApiAuthenticate
 {
     /**
-     * Handle an incoming request.
+     * Handle an incoming request for API routes
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
@@ -20,11 +20,12 @@ class Authenticate
         if (!Session::has('user.id')) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Please authenticate first.'
+                'message' => 'Unauthorized. Please authenticate first.',
+                'code' => 'AUTHENTICATION_REQUIRED'
             ], 401);
         }
 
-        // Optional: Add user data to request for easy access in controllers
+        // Add user data to request for easy access in controllers
         $request->merge([
             'authenticated_user' => [
                 'id' => Session::get('user.id'),

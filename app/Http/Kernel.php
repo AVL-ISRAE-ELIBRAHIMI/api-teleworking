@@ -2,7 +2,6 @@
 
 namespace App\Http;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -12,13 +11,11 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class, // Active le vrai CORS de Laravel ici
+        \Illuminate\Http\Middleware\HandleCors::class,
         \Illuminate\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
-
-
 
     /**
      * The application's route middleware groups.
@@ -33,17 +30,9 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            \Illuminate\Http\Middleware\HandleCors::class, // native CORS middleware
+            \Illuminate\Http\Middleware\HandleCors::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
-    ];
-
-    /**
-     * The application's route middleware.
-     */
-    protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
     ];
 }
