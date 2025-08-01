@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * Class Collaborateur
@@ -24,6 +25,8 @@ use Carbon\Carbon;
  */
 class Collaborateur extends Model
 {
+        use HasRoles; // Ajoutez ce trait
+
     protected $table = 'collaborateurs';
 
     // 🚨 Ajout obligatoire pour utiliser des UUIDs comme clés primaires

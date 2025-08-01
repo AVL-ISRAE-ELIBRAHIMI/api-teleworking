@@ -46,4 +46,5 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/reservations', [ReservationController::class, 'store']);
     
     Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
+    Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
 });

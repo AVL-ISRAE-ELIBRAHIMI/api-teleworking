@@ -82,7 +82,7 @@ class ReservationController extends Controller
         ]);
         $reservations = $this->reservationService->createReservations($validated);
 
-        
+
         return response()->json([
             'message' => 'Réservations créées avec succès',
             'data' => $reservations
@@ -157,7 +157,6 @@ class ReservationController extends Controller
         // Récupération depuis la session Windows
         $sessionUser = session('user');
 
-
         // Trouver le collaborateur dans la base de données
         $collaborateur = Collaborateur::where('id', $sessionUser['id'])->first();
 
@@ -174,6 +173,27 @@ class ReservationController extends Controller
         return response()->json([
             'departement_id' => $collaborateur->departement_id,
             'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
+        ]);
+    }
+    public function getDashboardType()
+    {
+        $sessionUser = session('user');
+ 
+        $collaborateur = Collaborateur::with('roles')->find($sessionUser['id']);
+      
+
+        $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
+
+        $dashboard = [
+            'RH' => 'Dashboard-RH',
+            'STL' => 'Dashboard-STL',
+            'TL' => 'Dashboard-TL',
+            'Collaborateur' => 'Dashboard-Collab'
+        ][$roleName] ?? 'Dashboard-Collab';
+            // dd($dashboard);
+        return response()->json([
+            'component_name' => $dashboard,
+            'role' => $roleName
         ]);
     }
 
