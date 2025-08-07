@@ -296,22 +296,22 @@ class AuthController extends Controller
         }
     }
 
-    public function login()
-    {
-        try {
-            $userData = $this->windowsAuthService->authenticateUser();
+    // public function login()
+    // {
+    //     try {
+    //         $userData = $this->windowsAuthService->authenticateUser();
 
-            return response()->json([
-                'success' => true,
-                'data' => $userData,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $userData,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     public function validateUser(Request $request)
     {
