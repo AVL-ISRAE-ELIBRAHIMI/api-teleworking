@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('places', function (Blueprint $table) {
-            $table->id();
-            $table->string('label');
-            $table->foreignId('departement_id')->constrained('departements')->onDelete('cascade');
+        Schema::create('pointages', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('collaborateur_id');
+            $table->timestamp('date_pointage')->useCurrentOnUpdate()->useCurrent();
+            $table->boolean('presence')->default(true);
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('places');
+        Schema::dropIfExists('pointages');
     }
 };

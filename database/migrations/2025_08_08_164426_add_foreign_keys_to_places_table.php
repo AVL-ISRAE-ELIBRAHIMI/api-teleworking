@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('salles', function (Blueprint $table) {
-            $table->id();
-            $table->string('label');
-            $table->foreignId('departement_id')->constrained('departements')->onDelete('cascade');
-            $table->timestamps();
+        Schema::table('places', function (Blueprint $table) {
+            $table->foreign(['departement_id'])->references(['id'])->on('departements')->onUpdate('restrict')->onDelete('cascade');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('salles');
+        Schema::table('places', function (Blueprint $table) {
+            $table->dropForeign('places_departement_id_foreign');
+        });
     }
 };

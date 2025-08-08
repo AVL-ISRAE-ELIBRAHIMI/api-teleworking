@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pointages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('collaborateur_id')->constrained('collaborateurs')->onDelete('cascade');
-            $table->timestamp('date_pointage');
-            $table->boolean('presence')->default(true);
+        Schema::create('salles', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('label');
+            $table->unsignedBigInteger('departement_id')->index('salles_departement_id_foreign');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pointages');
+        Schema::dropIfExists('salles');
     }
 };

@@ -7,56 +7,77 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
  * Class Collaborateur
- * 
  * @property string $id
  * @property string $nom
  * @property string $prenom
  * @property string $manager
  * @property string $email
- * @property int $departement_id
- * @property int $equipe_id
+ * @property string|null $account_name
+ * @property string|null $departement_id
+ * @property string|null $equipe_id
  * @property string $activity
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * @package App\Models
  */
-class Collaborateur extends Model
+class Collaborateur extends Authenticatable
 {
-	protected $table = 'collaborateurs';
+    protected $table = 'collaborateurs';
 
-	protected $casts = [
-		'departement_id' => 'int',
-		'equipe_id' => 'int'
-	];
+    // Tell Laravel that the primary key is not an auto-incrementing integer
+    public $incrementing = false;
 
-	protected $fillable = [
-		'nom',
-		'prenom',
-		'manager',
-		'email',
-		'departement_id',
-		'equipe_id',
-		'activity'
-	];
+    // Tell Laravel that the primary key's data type is a string
+    protected $keyType = 'string';
 
-	public function reservations()
-	{
-		return $this->hasMany(Reservation::class, 'collaborateur_id');
-	}
+    // Disable remember token functionality
+    protected $rememberTokenName = null;
 
-	public function departement()
-	{
-		return $this->belongsTo(Departement::class, 'departement_id'); // clé étrangère dans la table collaborateurs
-	}
+    protected $casts = [
+        // No longer need to cast these as they are strings now
+        // 'departement_id' => 'int',
+        // 'equipe_id' => 'int'
+    ];
 
-	public function equipe()
-	{
-		return $this->belongsTo(Equipe::class, 'equipe_id'); // clé étrangère dans la table collaborateurs
-	}
-	
+    protected $fillable = [
+        'id',
+        'nom',
+        'prenom',
+        'manager',
+        'email',
+        'account_name',
+        'departement_id',
+        'equipe_id',
+        'activity'
+    ];
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'collaborateur_id');
+    }
+
+    public function departement()
+    {
+        return $this->belongsTo(Departement::class, 'departement_id');
+    }
+
+    public function equipe()
+    {
+        return $this->belongsTo(Equipe::class, 'equipe_id');
+    }
+
+    /**
+     * Get the name of the "remember me" token.
+     * 
+     * @return string|null
+     */
+    public function getRememberTokenName()
+    {
+        return null; // Disable remember token
+    }
 }
