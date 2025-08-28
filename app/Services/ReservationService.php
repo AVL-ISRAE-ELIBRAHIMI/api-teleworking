@@ -55,7 +55,7 @@ class ReservationService
 // }
 public function getMonthlyAvailability($year, $month, $departementId)
 {
-    $currentUserId = session('user.id');
+    $currentUserId = Auth::User();
 
     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
@@ -111,7 +111,7 @@ public function getMonthlyAvailability($year, $month, $departementId)
 }
     public function createReservations(array $data): Collection
     {
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User();
         $reservations = collect();
         $dates = $data['dates'];
         foreach ($dates as $date) {

@@ -10,6 +10,7 @@ use App\Services\ListTeamReservationService;
 use App\Services\ListUserReservationService;
 use Illuminate\Http\Request;
 use App\Services\ReservationService;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -33,7 +34,7 @@ class ReservationController extends Controller
     public function index()
     {
 
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User()->id;
 
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
@@ -46,7 +47,7 @@ class ReservationController extends Controller
     public function index_for_team_leads()
     {
 
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User()->id;
 
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
@@ -59,7 +60,7 @@ class ReservationController extends Controller
     public function index_for_skill_team_leads()
     {
 
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User()->id;
 
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
@@ -91,7 +92,7 @@ class ReservationController extends Controller
     // 4. Vérifier la disponibilité (déjà existante)
     public function getMonthlyAvailability($year, $month)
     {
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User();
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
 
         $availability = $this->reservationService->getMonthlyAvailability(
@@ -106,7 +107,7 @@ class ReservationController extends Controller
     // 5. Obtenir le layout du bureau (nouvelle méthode)
     public function getOfficeLayout()
     {
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User();
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
         return response()->json([
             'departement_id' => $collaborateur->departement_id,
@@ -126,7 +127,7 @@ class ReservationController extends Controller
     }
     public function getPlaces()
     {
-        $collaborateurId = session('user.id');
+        $collaborateurId = Auth::User()->id;
 
         try {
             // Récupérer le département_id du collaborateur connecté
@@ -152,35 +153,57 @@ class ReservationController extends Controller
             ], 500);
         }
     }
+    // public function getSeatBookingType()
+    // {
+    //     // Récupération depuis la session Windows
+    //     $collaborateurId = Auth::user();
+
+    //     // Trouver le collaborateur dans la base de données
+    //     $collaborateur = Collaborateur::where('id', $collaborateurId->id)->first();
+
+    //     if (!$collaborateur) {
+    //         return response()->json(['error' => 'Collaborateur non trouvé'], 404);
+    //     }
+
+    //     // Mapping des départements aux composants
+    //     $componentMap = [
+    //         1 => 'SeatBookingP2',
+    //         2 => 'SeatBookingP1',
+    //         3 => 'SeatBooking'
+    //     ];
+    //     return response()->json([
+    //         'departement_id' => $collaborateur->departement_id,
+    //         'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
+    //     ]);
+    // }
+
     public function getSeatBookingType()
     {
-        // Récupération depuis la session Windows
-        $sessionUser = session('user');
-
-        // Trouver le collaborateur dans la base de données
-        $collaborateur = Collaborateur::where('id', $sessionUser['id'])->first();
+        $collaborateur = Auth::user();
 
         if (!$collaborateur) {
-            return response()->json(['error' => 'Collaborateur non trouvé'], 404);
+            return response()->json(['error' => 'No authenticated user'], 401);
         }
 
-        // Mapping des départements aux composants
         $componentMap = [
             1 => 'SeatBookingP2',
             2 => 'SeatBookingP1',
             3 => 'SeatBooking'
         ];
+
         return response()->json([
             'departement_id' => $collaborateur->departement_id,
             'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
         ]);
     }
+
+  
+
     public function getDashboardType()
     {
-        $sessionUser = session('user');
- 
-        $collaborateur = Collaborateur::with('roles')->find($sessionUser['id']);
-      
+        $collaborateurId = Auth::user()->id;
+
+        $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
 
         $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
 
@@ -190,7 +213,7 @@ class ReservationController extends Controller
             'TL' => 'Dashboard-TL',
             'Collaborateur' => 'Dashboard-Collab'
         ][$roleName] ?? 'Dashboard-Collab';
-            // dd($dashboard);
+
         return response()->json([
             'component_name' => $dashboard,
             'role' => $roleName
