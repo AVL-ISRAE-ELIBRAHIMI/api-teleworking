@@ -6,109 +6,110 @@ use App\Models\Reservation;
 use App\Models\Place;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationService
 {
-   
 
-//   public function getMonthlyAvailability($year, $month, $departementId)
-// {
-//     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
-//     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
-//     $places = Place::where('departement_id', $departementId)
-//         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
-//             $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
-//         }])
-//         ->get();
+    //   public function getMonthlyAvailability($year, $month, $departementId)
+    // {
+    //     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
+    //     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
-//     $availability = [];
+    //     $places = Place::where('departement_id', $departementId)
+    //         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
+    //             $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
+    //         }])
+    //         ->get();
 
-//     foreach ($places as $place) {
-//         $availability[$place->id] = [
-//             'name' => $place->name,
-//             // 'zone' => $place->zone,
-//             'availability' => [],
-//         ];
+    //     $availability = [];
 
-//         for ($day = 1; $day <= $lastDay->day; $day++) {
-//             $date = Carbon::create($year, $month, $day)->toDateString();
+    //     foreach ($places as $place) {
+    //         $availability[$place->id] = [
+    //             'name' => $place->name,
+    //             // 'zone' => $place->zone,
+    //             'availability' => [],
+    //         ];
 
-//             if (Carbon::parse($date)->isWeekend()) {
-//                 $availability[$place->id]['availability'][$day] = 'weekend';
-//                 continue;
-//             }
+    //         for ($day = 1; $day <= $lastDay->day; $day++) {
+    //             $date = Carbon::create($year, $month, $day)->toDateString();
 
-//             $reservation = $place->reservations->first(function ($res) use ($date) {
-//                 return Carbon::parse($res->date_reservation)->toDateString() === $date;
-//             });
+    //             if (Carbon::parse($date)->isWeekend()) {
+    //                 $availability[$place->id]['availability'][$day] = 'weekend';
+    //                 continue;
+    //             }
 
-//             if ($reservation) {
-//                 $availability[$place->id]['availability'][$day] = 'confirmed';
-//             } else {
-//                 $availability[$place->id]['availability'][$day] = 'available';
-//             }
-//         }
-//     }
+    //             $reservation = $place->reservations->first(function ($res) use ($date) {
+    //                 return Carbon::parse($res->date_reservation)->toDateString() === $date;
+    //             });
 
-//     return $availability;
-// }
-public function getMonthlyAvailability($year, $month, $departementId)
-{
-    $currentUserId = Auth::User();
+    //             if ($reservation) {
+    //                 $availability[$place->id]['availability'][$day] = 'confirmed';
+    //             } else {
+    //                 $availability[$place->id]['availability'][$day] = 'available';
+    //             }
+    //         }
+    //     }
 
-    $firstDay = Carbon::create($year, $month, 1)->startOfDay();
-    $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
+    //     return $availability;
+    // }
+    public function getMonthlyAvailability($year, $month, $departementId)
+    {
+        $currentUserId = Auth::User()->id;
 
-    $places = Place::where('departement_id', $departementId)
-        ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
-            $query->whereBetween('date_reservation', [$firstDay, $lastDay])
-                  ->with('collaborateur'); // Charger l'utilisateur associé à chaque réservation
-        }])
-        ->get();
+        $firstDay = Carbon::create($year, $month, 1)->startOfDay();
+        $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
-    $availability = [];
+        $places = Place::where('departement_id', $departementId)
+            ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
+                $query->whereBetween('date_reservation', [$firstDay, $lastDay])
+                    ->with('collaborateur'); // Charger l'utilisateur associé à chaque réservation
+            }])
+            ->get();
 
-    foreach ($places as $place) {
-        $availability[$place->id] = [
-            'name' => $place->name,
-            'availability' => [],
-        ];
+        $availability = [];
 
-        for ($day = 1; $day <= $lastDay->day; $day++) {
-            $date = Carbon::create($year, $month, $day)->toDateString();
+        foreach ($places as $place) {
+            $availability[$place->id] = [
+                'name' => $place->name,
+                'availability' => [],
+            ];
 
-            if (Carbon::parse($date)->isWeekend()) {
-                $availability[$place->id]['availability'][$day] = [
-                    'status' => 'weekend',
-                    'reserved_by' => null,
-                    'is_current_user' => false
-                ];
-                continue;
-            }
+            for ($day = 1; $day <= $lastDay->day; $day++) {
+                $date = Carbon::create($year, $month, $day)->toDateString();
 
-            $reservation = $place->reservations->first(function ($res) use ($date) {
-                return Carbon::parse($res->date_reservation)->toDateString() === $date;
-            });
+                if (Carbon::parse($date)->isWeekend()) {
+                    $availability[$place->id]['availability'][$day] = [
+                        'status' => 'weekend',
+                        'reserved_by' => null,
+                        'is_current_user' => false
+                    ];
+                    continue;
+                }
 
-            if ($reservation) {
-                $availability[$place->id]['availability'][$day] = [
-                    'status' => 'confirmed',
-                    'reserved_by' => $reservation->collaborateur?->nom . ' ' . $reservation->collaborateur?->prenom,
-                    'is_current_user' => $reservation->collaborateur_id === $currentUserId
-                ];
-            } else {
-                $availability[$place->id]['availability'][$day] = [
-                    'status' => 'available',
-                    'reserved_by' => null,
-                    'is_current_user' => false
-                ];
+                $reservation = $place->reservations->first(function ($res) use ($date) {
+                    return Carbon::parse($res->date_reservation)->toDateString() === $date;
+                });
+
+                if ($reservation) {
+                    $availability[$place->id]['availability'][$day] = [
+                        'status' => 'confirmed',
+                        'reserved_by' => $reservation->collaborateur?->nom . ' ' . $reservation->collaborateur?->prenom,
+                        'is_current_user' => $reservation->collaborateur_id === $currentUserId
+                    ];
+                } else {
+                    $availability[$place->id]['availability'][$day] = [
+                        'status' => 'available',
+                        'reserved_by' => null,
+                        'is_current_user' => false
+                    ];
+                }
             }
         }
-    }
 
-    return $availability;
-}
+        return $availability;
+    }
     public function createReservations(array $data): Collection
     {
         $collaborateurId = Auth::User();
@@ -126,7 +127,6 @@ public function getMonthlyAvailability($year, $month, $departementId)
             } elseif (isset($data['salle_id'])) {
                 $reservationData['salle_id'] = $data['salle_id'];
             }
-
             $reservation = Reservation::create($reservationData);
             $reservations->push($reservation);
         }

@@ -4,6 +4,7 @@
 // use App\Http\Controllers\API\ReservationController;
 // use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\API\ProfilController;
 use App\Http\Controllers\API\ReservationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ Route::get('/manual-auth', function () {
 // Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
 
 //     // Profile
-//     Route::get('/profil', [ProfilController::class, 'index']);
+// Route::get('/profil', [ProfilController::class, 'index']);
 
 // Get availability
 // Route::get('/availability/month/{year}/{month}', [ReservationController::class, 'getMonthlyAvailability']);
@@ -143,10 +144,10 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
 
             $user = Auth::user();
 
-            // if ($user) {
-            //     $user->load('departement', 'equipe');
-            // }
-
+            if ($user) {
+                $user->load('departement', 'equipe');
+            }
+            
             return response()->json($user);
         });
 
@@ -167,12 +168,15 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::post('/reservations', [ReservationController::class, 'store']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
         Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
-
+        Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
+        Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
+        Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
+        // Profile
+        // Route::get('/profil', [ProfilController::class, 'index']);
     });
 
     // Catch-all route for Vue Router (SPA) 
     Route::get('/{any?}', function () {
         return view('welcome');
     })->where('any', '.*');
-
 });

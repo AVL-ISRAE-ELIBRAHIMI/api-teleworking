@@ -92,7 +92,7 @@ class ReservationController extends Controller
     // 4. Vérifier la disponibilité (déjà existante)
     public function getMonthlyAvailability($year, $month)
     {
-        $collaborateurId = Auth::User();
+        $collaborateurId = Auth::User()->id;
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
 
         $availability = $this->reservationService->getMonthlyAvailability(

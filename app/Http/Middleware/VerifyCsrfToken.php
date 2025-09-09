@@ -5,16 +5,16 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 class VerifyCsrfToken extends Middleware
 {
     protected $except = [
-        'api/*'
+    'api/*',
     ];
     
-    protected function tokensMatch($request)
-    {
-        // Skip CSRF check for API routes
-        if ($request->is('api/*')) {
-            return true;
-        }
+    // protected function tokensMatch($request)
+    // {
+    //     // Skip CSRF check for API routes
+    //     if ($request->is('api/*')) {
+    //         return true;
+    //     }
         
-        return parent::tokensMatch($request);
-    }
+    //     return parent::tokensMatch($request);
+    // }
 }
