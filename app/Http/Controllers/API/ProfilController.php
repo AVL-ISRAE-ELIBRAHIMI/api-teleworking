@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Services\ProfilService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProfilController extends Controller
 {
@@ -20,7 +21,7 @@ class ProfilController extends Controller
      */
     public function index()
     {
-        $collaborateurId = Auth::User();
+        $collaborateurId = Auth::User()->id;
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
         }

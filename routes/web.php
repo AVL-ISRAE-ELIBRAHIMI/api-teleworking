@@ -123,7 +123,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
             'auth_check' => Auth::check(),
             'user' => Auth::user(),
             'has_session' => $request->hasSession(),
-            'session_started' => $request->session()->isStarted()
+            'session_started' => $request->session()->isStarted(),
         ]);
     });
 
@@ -143,7 +143,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/user', function (Request $request) {
 
             $user = Auth::user();
-
+          
             if ($user) {
                 $user->load('departement', 'equipe');
             }
@@ -165,12 +165,13 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
         Route::get('/places', [ReservationController::class, 'getPlaces']);
         Route::get('/salles', [ReservationController::class, 'getSalles']);
-        Route::post('/reservations', [ReservationController::class, 'store']);
+        Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
         Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
         Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
         Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
+        Route::get('/check-role', [ReservationController::class, 'is_STL']);
         // Profile
         // Route::get('/profil', [ProfilController::class, 'index']);
     });

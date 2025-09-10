@@ -10,50 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ReservationService
 {
-
-
-    //   public function getMonthlyAvailability($year, $month, $departementId)
-    // {
-    //     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
-    //     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
-
-    //     $places = Place::where('departement_id', $departementId)
-    //         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
-    //             $query->whereBetween('date_reservation', [$firstDay, $lastDay]);
-    //         }])
-    //         ->get();
-
-    //     $availability = [];
-
-    //     foreach ($places as $place) {
-    //         $availability[$place->id] = [
-    //             'name' => $place->name,
-    //             // 'zone' => $place->zone,
-    //             'availability' => [],
-    //         ];
-
-    //         for ($day = 1; $day <= $lastDay->day; $day++) {
-    //             $date = Carbon::create($year, $month, $day)->toDateString();
-
-    //             if (Carbon::parse($date)->isWeekend()) {
-    //                 $availability[$place->id]['availability'][$day] = 'weekend';
-    //                 continue;
-    //             }
-
-    //             $reservation = $place->reservations->first(function ($res) use ($date) {
-    //                 return Carbon::parse($res->date_reservation)->toDateString() === $date;
-    //             });
-
-    //             if ($reservation) {
-    //                 $availability[$place->id]['availability'][$day] = 'confirmed';
-    //             } else {
-    //                 $availability[$place->id]['availability'][$day] = 'available';
-    //             }
-    //         }
-    //     }
-
-    //     return $availability;
-    // }
     public function getMonthlyAvailability($year, $month, $departementId)
     {
         $currentUserId = Auth::User()->id;
@@ -112,7 +68,7 @@ class ReservationService
     }
     public function createReservations(array $data): Collection
     {
-        $collaborateurId = Auth::User();
+        $collaborateurId = Auth::User()->id;
         $reservations = collect();
         $dates = $data['dates'];
         foreach ($dates as $date) {

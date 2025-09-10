@@ -29,6 +29,8 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // Add IIS Auth middleware to web group
             \App\Http\Middleware\IisAuth::class,
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
 
         ],
 
