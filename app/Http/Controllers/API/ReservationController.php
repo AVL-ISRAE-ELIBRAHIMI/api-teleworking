@@ -33,8 +33,7 @@ class ReservationController extends Controller
 
     public function index()
     {
-
-        $collaborateurId = Auth::User()->id;
+        $collaborateurId = Auth::user()->id;
 
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
@@ -42,8 +41,12 @@ class ReservationController extends Controller
 
         $reservations = $this->listReservationService->getReservationsByCollaborateur($collaborateurId);
 
-        return response()->json($reservations);
+        return response()->json([
+            'reservations' => $reservations,
+            'currentUserId' => $collaborateurId,
+        ]);
     }
+
     public function index_for_team_leads()
     {
 
@@ -57,6 +60,7 @@ class ReservationController extends Controller
 
         return response()->json($reservations);
     }
+
     public function index_for_skill_team_leads()
     {
 
@@ -70,8 +74,6 @@ class ReservationController extends Controller
 
         return response()->json($reservations);
     }
-
-
 
     // 2. Créer des réservations (déjà existante)
     public function store(Request $request)
@@ -91,18 +93,18 @@ class ReservationController extends Controller
     }
     // 4. Vérifier la disponibilité (déjà existante)
     public function getMonthlyAvailability($year, $month)
-{
-    $collaborateurId = Auth::User()->id;
-    $collaborateur = Collaborateur::findOrFail($collaborateurId);
+    {
+        $collaborateurId = Auth::User()->id;
+        $collaborateur = Collaborateur::findOrFail($collaborateurId);
 
-    $availability = $this->reservationService->getMonthlyAvailability(
-        $year,
-        $month,
-        $collaborateur->departement_id
-    );
+        $availability = $this->reservationService->getMonthlyAvailability(
+            $year,
+            $month,
+            $collaborateur->departement_id
+        );
 
-    return response()->json($availability);
-}
+        return response()->json($availability);
+    }
     // 5. Obtenir le layout du bureau (nouvelle méthode)
     public function getOfficeLayout()
     {

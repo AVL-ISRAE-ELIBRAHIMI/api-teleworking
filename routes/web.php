@@ -4,6 +4,7 @@
 // use App\Http\Controllers\API\ReservationController;
 // use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\API\DepartementController;
 use App\Http\Controllers\API\ProfilController;
 use App\Http\Controllers\API\ReservationController;
 use Illuminate\Support\Facades\Route;
@@ -143,11 +144,11 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/user', function (Request $request) {
 
             $user = Auth::user();
-          
+
             if ($user) {
                 $user->load('departement', 'equipe');
             }
-            
+
             return response()->json($user);
         });
 
@@ -172,6 +173,19 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
         Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
         Route::get('/check-role', [ReservationController::class, 'is_STL']);
+        Route::get('/check-user', [ReservationController::class, 'getUserData']);
+        Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
+        Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
+
+        Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+            $user = $request->user();
+            return response()->json([
+                'id' => $user->id,
+                'role' => $user->getRoleNames()->first(), // Spatie
+                'departement_id' => $user->departement_id
+            ]);
+        });
+
         // Profile
         // Route::get('/profil', [ProfilController::class, 'index']);
     });
