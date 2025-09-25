@@ -3,13 +3,28 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Collaborateur;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CollaborateurController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    public function getUserRole()
+    {
+        $collaborateurId = Auth::user()->id;
+
+        $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
+
+        $role = $collaborateur->roles->first()->name ?? null;
+
+        return response()->json([
+            'role' => $role
+        ]);
+    }
+
     public function index()
     {
         //

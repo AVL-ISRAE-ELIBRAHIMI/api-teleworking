@@ -4,8 +4,8 @@
 // use App\Http\Controllers\API\ReservationController;
 // use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\API\CollaborateurController;
 use App\Http\Controllers\API\DepartementController;
-use App\Http\Controllers\API\ProfilController;
 use App\Http\Controllers\API\ReservationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -146,7 +146,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
             $user = Auth::user();
 
             if ($user) {
-                $user->load('departement', 'equipe');
+                $user->load('departement', 'equipe', 'managerUser');
             }
 
             return response()->json($user);
@@ -173,9 +173,12 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
         Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
         Route::get('/check-role', [ReservationController::class, 'is_STL']);
+        Route::get('/check-user-role', [CollaborateurController::class, 'getUserRole']);
         Route::get('/check-user', [ReservationController::class, 'getUserData']);
         Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
         Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
+      
+
 
         Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
             $user = $request->user();
@@ -186,8 +189,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
             ]);
         });
 
-        // Profile
-        // Route::get('/profil', [ProfilController::class, 'index']);
+    
     });
 
     // Catch-all route for Vue Router (SPA) 

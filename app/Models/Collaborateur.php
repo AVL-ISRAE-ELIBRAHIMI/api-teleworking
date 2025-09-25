@@ -104,12 +104,23 @@ class Collaborateur extends Authenticatable
         'equipe_id',
         'activity'
     ];
+    protected $appends = ['manager_name'];
 
+    public function getManagerNameAttribute()
+    {
+        return $this->managerUser
+            ? $this->managerUser->nom . ' ' . $this->managerUser->prenom
+            : null;
+    }
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'collaborateur_id');
     }
 
+    public function managerUser()
+    {
+        return $this->belongsTo(Collaborateur::class, 'manager', 'id');
+    }
     public function departement()
     {
         return $this->belongsTo(Departement::class, 'departement_id');
