@@ -29,23 +29,26 @@ class DepartementController extends Controller
         $currentMonth = Carbon::now()->format('Y-m');
         $prevMonth = Carbon::now()->subMonth()->format('Y-m');
 
-        $stats = DB::table('reservations')
-            ->join('places', 'reservations.place_id', '=', 'places.id')
-            ->join('departements', 'places.departement_id', '=', 'departements.id')
-            ->selectRaw("
+          // ✅ Récupérer les stats par département avec LEFT JOIN
+    $stats = DB::table('departements')
+        ->leftJoin('places', 'departements.id', '=', 'places.departement_id')
+        ->leftJoin('reservations', function ($join) use ($userId, $prevMonth, $currentMonth) {
+            $join->on('places.id', '=', 'reservations.place_id')
+                 ->where('reservations.collaborateur_id', $userId)
+                 ->whereBetween('reservations.date_reservation', [
+                     Carbon::parse($prevMonth . '-01')->startOfMonth(),
+                     Carbon::parse($currentMonth . '-01')->endOfMonth()
+                 ]);
+        })
+        ->whereIn('departements.id', [1, 2, 3]) // ✅ uniquement départements 1,2,3
+        ->selectRaw("
             departements.id as departement_id,
             departements.label as departement_name,
             DATE_FORMAT(reservations.date_reservation, '%Y-%m') as month,
-            COUNT(*) as total
+            COALESCE(COUNT(reservations.id), 0) as total
         ")
-            ->where('reservations.collaborateur_id', $userId)
-            ->whereIn('departements.id', [1, 2, 3]) // ✅ uniquement départements 1,2,3
-            ->whereBetween('reservations.date_reservation', [
-                Carbon::parse($prevMonth . '-01')->startOfMonth(),
-                Carbon::parse($currentMonth . '-01')->endOfMonth()
-            ])
-            ->groupBy('departements.id', 'departements.label', 'month')
-            ->get();
+        ->groupBy('departements.id', 'departements.label', 'month')
+        ->get();
 
         // Préparer résultat
         $result = [
