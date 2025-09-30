@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class CollaborateurController extends Controller
 {
@@ -24,6 +25,8 @@ class CollaborateurController extends Controller
             'role' => $role
         ]);
     }
+
+
 
     public function index()
     {

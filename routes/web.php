@@ -4,6 +4,7 @@
 // use App\Http\Controllers\API\ReservationController;
 // use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\API\AbsenceProxyController;
 use App\Http\Controllers\API\CollaborateurController;
 use App\Http\Controllers\API\DepartementController;
 use App\Http\Controllers\API\ReservationController;
@@ -177,7 +178,8 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/check-user', [ReservationController::class, 'getUserData']);
         Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
         Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
-      
+        Route::post('/proxy-absences', [AbsenceProxyController::class, 'send']);
+
 
 
         Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
