@@ -51,6 +51,7 @@ class ListSkillTeamReservationService
                     'departement_label' => $res->place->departement->label ?? '',
                     'equipe_label' => $res->collaborateur->equipe->label ?? 'Équipe non définie',
                     'collaborateur' => ($res->collaborateur->nom ?? '') . ' ' . ($res->collaborateur->prenom ?? '')     ,
+                    'quota' => ($res->collaborateur->quota ?? '')  ,
                 ];
             });
     }

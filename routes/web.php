@@ -71,31 +71,7 @@ Route::get('/manual-auth', function () {
         ]);
     }
 });
-// New authentication endpoints for your approach
-// Route::get('/auth/company-users', [AuthController::class, 'fetchCompanyUsers']);
-// Route::post('/auth/windows-authenticate', [AuthController::class, 'authenticateWithWindowsAndCompanyList']);
-// Route::post('/auth/authenticate-account', [AuthController::class, 'authenticateWithAccountName']);
 
-// // Protected routes - require authentication
-// Route::middleware(['api.auth'])->group(function () {
-//     // Reservations
-// Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
-// Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
-// Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
-
-//     // Profile
-// Route::get('/profil', [ProfilController::class, 'index']);
-
-// Get availability
-// Route::get('/availability/month/{year}/{month}', [ReservationController::class, 'getMonthlyAvailability']);
-// Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
-
-// // Get resources
-// Route::get('/places', [ReservationController::class, 'getPlaces']);
-// Route::get('/salles', [ReservationController::class, 'getSalles']);
-
-// // Create reservations
-// Route::post('/reservations', [ReservationController::class, 'store']);
 Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(function () {
     // Main app route
     Route::get('/', function () {
@@ -163,6 +139,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
 
         // Add reservation endpoints
         Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
+        Route::get('/reservations/all', [ReservationController::class, 'index_all']);
         Route::get('/availability/month/{year}/{month}', [ReservationController::class, 'getMonthlyAvailability']);
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
         Route::get('/places', [ReservationController::class, 'getPlaces']);
@@ -170,7 +147,6 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
         Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
-        Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
         Route::get('/reservations/skill-team', [ReservationController::class, 'index_for_skill_team_leads']);
         Route::get('/check-role', [ReservationController::class, 'is_STL']);
@@ -178,7 +154,10 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/check-user', [ReservationController::class, 'getUserData']);
         Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
         Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
-        Route::post('/proxy-absences', [AbsenceProxyController::class, 'send']);
+        Route::middleware(['auth:sanctum'])->post('/proxy-absences', [AbsenceProxyController::class, 'send']);
+        Route::middleware(['auth:sanctum'])->put('/reservations/{id}/update-quota', [CollaborateurController::class, 'updateQuota'])
+            ->name('update-quota');
+        Route::get('/quota-type', [CollaborateurController::class, 'quotaReturn']);
 
 
 
@@ -190,8 +169,6 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
                 'departement_id' => $user->departement_id
             ]);
         });
-
-    
     });
 
     // Catch-all route for Vue Router (SPA) 

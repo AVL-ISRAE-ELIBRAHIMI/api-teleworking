@@ -4,9 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+use App\Models\Collaborator;
+use App\Models\Reservation;
+use Symfony\Component\HttpFoundation\Response;
 
 class CollaborateurController extends Controller
 {
@@ -27,7 +30,42 @@ class CollaborateurController extends Controller
     }
 
 
+    public function updateQuota(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'quota' => ['required', 'integer', 'min:0', 'max:22'], // why: bornes métier
+        ]);
+        $res_id = Reservation::findOrFail($id);
+        $collab = Collaborateur::findOrFail($res_id->collaborateur_id);
+        $collab->quota = $data['quota'];
+        $collab->save();
 
+        return response()->json([
+            'id'   => $collab->id,
+            'quota' => $collab->quota,
+        ], Response::HTTP_OK);
+    }
+      
+    public function quotaReturn()
+    {
+        $collaborateurId = Auth::user()->id;
+
+        $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
+
+        $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
+
+        $dashboard = [
+            'RH' => 'GestionQuota-RH',
+            'STL' => 'GestionQuota',
+         
+        ][$roleName] ?? 'GestionQuota';
+
+        return response()->json([
+            'component_name' => $dashboard,
+            'role' => $roleName
+        ]);
+    }
+    
     public function index()
     {
         //

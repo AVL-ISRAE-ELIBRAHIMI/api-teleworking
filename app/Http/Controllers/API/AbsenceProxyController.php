@@ -18,8 +18,13 @@ class AbsenceProxyController extends Controller
             'pointage',
             file_get_contents($request->file('pointage')->getRealPath()),
             $request->file('pointage')->getClientOriginalName()
+        )->attach(
+            'leave',
+            file_get_contents($request->file('leave')->getRealPath()),
+            $request->file('leave')->getClientOriginalName()
         )->post('http://10.42.202.11:8000/absences');
 
         return $response->json();
     }
+    
 }

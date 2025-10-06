@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
 use App\Models\Place;
+use App\Models\Reservation;
+use App\Services\ListRHTeamReservationService;
 use App\Services\ListSkillTeamReservationService;
 use App\Services\ListTeamReservationService;
 use App\Services\ListUserReservationService;
@@ -21,12 +23,14 @@ class ReservationController extends Controller
     protected $listTeamReservationService;
     protected $listSkillTeamReservationService;
     protected $reservationService;
+    protected $listRHTeamReservationService;
 
-    public function __construct(ListUserReservationService $listReservationService, ListTeamReservationService $listTeamReservationService, ListSkillTeamReservationService $listSkillTeamReservationService, ReservationService $reservationService)
+    public function __construct(ListSkillTeamReservationService $listSkillTeamReservationService, ListUserReservationService $listReservationService, ListTeamReservationService $listTeamReservationService, ListRHTeamReservationService $listRHTeamReservationService, ReservationService $reservationService)
     {
+        $this->listSkillTeamReservationService = $listSkillTeamReservationService;
         $this->listReservationService = $listReservationService;
         $this->listTeamReservationService = $listTeamReservationService;
-        $this->listSkillTeamReservationService = $listSkillTeamReservationService;
+        $this->listRHTeamReservationService = $listRHTeamReservationService;
         $this->reservationService = $reservationService;
     }
 
@@ -41,10 +45,24 @@ class ReservationController extends Controller
 
         $reservations = $this->listReservationService->getReservationsByCollaborateur($collaborateurId);
 
+        $collaborateur = Collaborateur::findOrFail($collaborateurId);
         return response()->json([
             'reservations' => $reservations,
             'currentUserId' => $collaborateurId,
+            'quotaUser' => $collaborateur->quota,
         ]);
+    }
+   public function index_all()
+    {
+         $collaborateurId = Auth::User()->id;
+
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+
+        $reservations = $this->listRHTeamReservationService->getReservationsByRH($collaborateurId);
+
+        return response()->json($reservations);
     }
 
     public function index_for_team_leads()
