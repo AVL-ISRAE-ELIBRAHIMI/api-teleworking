@@ -41,4 +41,22 @@ class ListRHTeamReservationService
             });
     
     }
+
+    public function getAllUsers()
+    {
+       
+           return Collaborateur::with(['departement', 'equipe'])
+        ->get()
+        ->map(function ($collab) {
+            return [
+                'id' => $collab->id,
+                'collaborateur' => $collab->nom . ' ' . $collab->prenom,
+                'departement_label' => $collab->departement->label ?? '',
+                'equipe_label' => $collab->equipe->label ?? 'Équipe non définie',
+                'quota' => $collab->quota ?? '',
+            ];
+        });
+    
+    }
+   
 }

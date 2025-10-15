@@ -30,22 +30,27 @@ class CollaborateurController extends Controller
     }
 
 
-    public function updateQuota(Request $request, int $id)
+    public function updateQuota(Request $request, string $id)
     {
+        // ✅ Validation
         $data = $request->validate([
-            'quota' => ['required', 'integer', 'min:0', 'max:22'], // why: bornes métier
+            'quota' => ['required', 'integer', 'min:0', 'max:22'], // bornes métier
         ]);
-        $res_id = Reservation::findOrFail($id);
-        $collab = Collaborateur::findOrFail($res_id->collaborateur_id);
+
+        // ✅ Recherche du collaborateur (UUID)
+        $collab = Collaborateur::findOrFail($id);
+
+        // ✅ Mise à jour du quota
         $collab->quota = $data['quota'];
         $collab->save();
 
+        // ✅ Réponse JSON
         return response()->json([
-            'id'   => $collab->id,
+            'id'    => $collab->id,
             'quota' => $collab->quota,
         ], Response::HTTP_OK);
     }
-      
+
     public function quotaReturn()
     {
         $collaborateurId = Auth::user()->id;
@@ -57,7 +62,7 @@ class CollaborateurController extends Controller
         $dashboard = [
             'RH' => 'GestionQuota-RH',
             'STL' => 'GestionQuota',
-         
+
         ][$roleName] ?? 'GestionQuota';
 
         return response()->json([
@@ -65,7 +70,7 @@ class CollaborateurController extends Controller
             'role' => $roleName
         ]);
     }
-    
+
     public function index()
     {
         //
