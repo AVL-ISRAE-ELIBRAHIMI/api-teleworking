@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Collaborateur;
 use App\Models\Reservation;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
@@ -50,9 +51,29 @@ class ListSkillTeamReservationService
                     'place_label' => $res->place->name ?? '',
                     'departement_label' => $res->place->departement->label ?? '',
                     'equipe_label' => $res->collaborateur->equipe->label ?? 'Équipe non définie',
-                    'collaborateur' => ($res->collaborateur->nom ?? '') . ' ' . ($res->collaborateur->prenom ?? '')     ,
-                    'quota' => ($res->collaborateur->quota ?? '')  ,
+                    'collaborateur' => ($res->collaborateur->nom ?? '') . ' ' . ($res->collaborateur->prenom ?? ''),
+                    'quota' => ($res->collaborateur->quota ?? ''),
                 ];
             });
     }
+
+  public function getDepartementUsers(string $collaborateurId)
+{
+    // 🔹 Récupérer le collaborateur pour connaître son département
+    $collaborateur = Collaborateur::findOrFail($collaborateurId);
+
+    // 🔹 Récupérer tous les collaborateurs du même département
+    return Collaborateur::with(['departement', 'equipe'])
+        ->where('departement_id', $collaborateur->departement_id)
+        ->get()
+        ->map(function ($collab) {
+            return [
+                'id' => $collab->id,
+                'collaborateur' => trim(($collab->nom ?? '') . ' ' . ($collab->prenom ?? '')),
+                'departement_label' => $collab->departement->label ?? '',
+                'equipe_label' => $collab->equipe->label ?? 'Équipe non définie',
+                'quota' => $collab->quota ?? '',
+            ];
+        });
+}
 }

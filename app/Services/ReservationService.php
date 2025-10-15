@@ -2,25 +2,93 @@
 
 namespace App\Services;
 
+use App\Models\Collaborateur;
 use App\Models\Reservation;
 use App\Models\Place;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class ReservationService
 {
+    // public function getMonthlyAvailability($year, $month, $departementId)
+    // {
+    //     $currentUserId = Auth::User()->id;
+
+    //     $firstDay = Carbon::create($year, $month, 1)->startOfDay();
+    //     $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
+
+    //     $places = Place::where('departement_id', $departementId)
+    //         ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
+    //             $query->whereBetween('date_reservation', [$firstDay, $lastDay])
+    //                 ->with('collaborateur'); // Charger l'utilisateur associé à chaque réservation
+    //         }])
+    //         ->get();
+
+    //     $availability = [];
+
+    //     foreach ($places as $place) {
+    //         $availability[$place->id] = [
+    //             'name' => $place->name,
+    //             'availability' => [],
+    //         ];
+
+    //         for ($day = 1; $day <= $lastDay->day; $day++) {
+    //             $date = Carbon::create($year, $month, $day)->toDateString();
+
+    //             if (Carbon::parse($date)->isWeekend()) {
+    //                 $availability[$place->id]['availability'][$day] = [
+    //                     'status' => 'weekend',
+    //                     'reserved_by' => null,
+    //                     'is_current_user' => false
+    //                 ];
+    //                 continue;
+    //             }
+
+    //             $reservation = $place->reservations->first(function ($res) use ($date) {
+    //                 return Carbon::parse($res->date_reservation)->toDateString() === $date;
+    //             });
+
+    //             if ($reservation) {
+    //                 $availability[$place->id]['availability'][$day] = [
+    //                     'status' => 'confirmed',
+    //                     'reserved_by' => $reservation->collaborateur?->nom . ' ' . $reservation->collaborateur?->prenom,
+    //                     'is_current_user' => $reservation->collaborateur_id === $currentUserId
+    //                 ];
+    //             } else {
+    //                 $availability[$place->id]['availability'][$day] = [
+    //                     'status' => 'available',
+    //                     'reserved_by' => null,
+    //                     'is_current_user' => false
+    //                 ];
+    //             }
+    //         }
+    //     }
+
+    //     return $availability;
+    // }
     public function getMonthlyAvailability($year, $month, $departementId)
     {
-        $currentUserId = Auth::User()->id;
+        $currentUserId = Auth::user()->id;
 
         $firstDay = Carbon::create($year, $month, 1)->startOfDay();
         $lastDay = $firstDay->copy()->endOfMonth()->endOfDay();
 
-        $places = Place::where('departement_id', $departementId)
+        // 🔹 Si département 4 (Admin) → charger tous les départements
+        $placesQuery = Place::query();
+
+        if ($departementId != 4) {
+            $placesQuery->where('departement_id', $departementId);
+        } else {
+            // Optionnel : seulement les départements ayant des places
+            $placesQuery->whereIn('departement_id', [1, 2, 3]);
+        }
+
+        $places = $placesQuery
             ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
                 $query->whereBetween('date_reservation', [$firstDay, $lastDay])
-                    ->with('collaborateur'); // Charger l'utilisateur associé à chaque réservation
+                    ->with('collaborateur');
             }])
             ->get();
 
@@ -39,7 +107,7 @@ class ReservationService
                     $availability[$place->id]['availability'][$day] = [
                         'status' => 'weekend',
                         'reserved_by' => null,
-                        'is_current_user' => false
+                        'is_current_user' => false,
                     ];
                     continue;
                 }
@@ -52,13 +120,13 @@ class ReservationService
                     $availability[$place->id]['availability'][$day] = [
                         'status' => 'confirmed',
                         'reserved_by' => $reservation->collaborateur?->nom . ' ' . $reservation->collaborateur?->prenom,
-                        'is_current_user' => $reservation->collaborateur_id === $currentUserId
+                        'is_current_user' => $reservation->collaborateur_id === $currentUserId,
                     ];
                 } else {
                     $availability[$place->id]['availability'][$day] = [
                         'status' => 'available',
                         'reserved_by' => null,
-                        'is_current_user' => false
+                        'is_current_user' => false,
                     ];
                 }
             }
@@ -66,6 +134,9 @@ class ReservationService
 
         return $availability;
     }
+
+   
+
     public function createReservations(array $data): Collection
     {
         $collaborateurId = Auth::User()->id;

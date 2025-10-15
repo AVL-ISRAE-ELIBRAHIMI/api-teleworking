@@ -140,6 +140,8 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         // Add reservation endpoints
         Route::get('/reservations/collaborateur', [ReservationController::class, 'index']);
         Route::get('/reservations/all', [ReservationController::class, 'index_all']);
+        Route::get('/reservations/allcollaborators', [ReservationController::class, 'getAllUsers']);
+        Route::get('/reservations/collaborators', [ReservationController::class, 'getDepartementUsers']);
         Route::get('/availability/month/{year}/{month}', [ReservationController::class, 'getMonthlyAvailability']);
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
         Route::get('/places', [ReservationController::class, 'getPlaces']);

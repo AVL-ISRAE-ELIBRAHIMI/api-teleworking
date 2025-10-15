@@ -52,9 +52,9 @@ class ReservationController extends Controller
             'quotaUser' => $collaborateur->quota,
         ]);
     }
-   public function index_all()
+    public function index_all()
     {
-         $collaborateurId = Auth::User()->id;
+        $collaborateurId = Auth::User()->id;
 
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
@@ -63,6 +63,32 @@ class ReservationController extends Controller
         $reservations = $this->listRHTeamReservationService->getReservationsByRH($collaborateurId);
 
         return response()->json($reservations);
+    }
+
+    public function getAllUsers()
+    {
+        $collaborateurId = Auth::User()->id;
+
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+
+        $users = $this->listRHTeamReservationService->getAllUsers();
+
+        return response()->json($users);
+    }
+
+    public function getDepartementUsers()
+    {
+        $collaborateurId = Auth::User()->id;
+
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+
+        $users = $this->listSkillTeamReservationService->getDepartementUsers($collaborateurId);
+
+        return response()->json($users);
     }
 
     public function index_for_team_leads()
@@ -115,14 +141,21 @@ class ReservationController extends Controller
         $collaborateurId = Auth::User()->id;
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
 
-        $availability = $this->reservationService->getMonthlyAvailability(
-            $year,
-            $month,
-            $collaborateur->departement_id
-        );
 
+        // 🔹 Cas spécial : département 4 → récupérer toutes les réservations
+        if ($collaborateur->departement_id == 4) {
+            // On passe null ou un indicateur spécial au service
+            $availability = $this->reservationService->getMonthlyAvailability($year, $month, 4);
+        } else {
+            $availability = $this->reservationService->getMonthlyAvailability(
+                $year,
+                $month,
+                $collaborateur->departement_id
+            );
+        }
         return response()->json($availability);
     }
+   
     // 5. Obtenir le layout du bureau (nouvelle méthode)
     public function getOfficeLayout()
     {
@@ -153,9 +186,12 @@ class ReservationController extends Controller
             $collaborateur = Collaborateur::findOrFail($collaborateurId);
 
             $places = Place::where('departement_id', $collaborateur->departement_id)
-                ->where('is_active', true)
                 ->orderBy('name') // Tri par label (A1, A2, A3, etc.)
                 ->get();
+            if ($collaborateur->departement_id == 4) {
+                // Récupérer toutes les places
+                $places = Place::all();
+            }
             return response()->json([
                 'places' => $places->map(function ($place) {
                     return [
@@ -183,7 +219,8 @@ class ReservationController extends Controller
         $componentMap = [
             1 => 'SeatBookingP2',
             2 => 'SeatBookingP1',
-            3 => 'SeatBooking'
+            3 => 'SeatBooking',
+            4 => 'SeatBookingRh'
         ];
 
         return response()->json([
