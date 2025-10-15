@@ -136,23 +136,28 @@ class ReservationController extends Controller
         ], 201);
     }
     // 4. Vérifier la disponibilité (déjà existante)
-    public function getMonthlyAvailability($year, $month)
+    public function getMonthlyAvailability($year, $month, $departement_id = null)
     {
-        $collaborateurId = Auth::User()->id;
-        $collaborateur = Collaborateur::findOrFail($collaborateurId);
-
-
-        // 🔹 Cas spécial : département 4 → récupérer toutes les réservations
-        if ($collaborateur->departement_id == 4) {
-            // On passe null ou un indicateur spécial au service
-            $availability = $this->reservationService->getMonthlyAvailability($year, $month, 4);
-        } else {
-            $availability = $this->reservationService->getMonthlyAvailability(
-                $year,
-                $month,
-                $collaborateur->departement_id
-            );
+        $collaborateurId = Auth::user()->id;
+    
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
         }
+    
+        $collaborateur = Collaborateur::findOrFail($collaborateurId);
+    
+        if ($collaborateur->departement_id == 4) {
+            $deptToQuery = $departement_id ?? 4;
+        } else {
+            $deptToQuery = $collaborateur->departement_id;
+        }
+    
+        $availability = $this->reservationService->getMonthlyAvailability(
+            $year,
+            $month,
+            $deptToQuery
+        );
+    
         return response()->json($availability);
     }
    
@@ -177,27 +182,36 @@ class ReservationController extends Controller
             default => 'Bureau Inconnu'
         };
     }
-    public function getPlaces()
+    public function getPlaces($departement_id = null)
     {
-        $collaborateurId = Auth::User()->id;
-
+        $collaborateurId = Auth::user()->id;
+    
         try {
-            // Récupérer le département_id du collaborateur connecté
             $collaborateur = Collaborateur::findOrFail($collaborateurId);
-
-            $places = Place::where('departement_id', $collaborateur->departement_id)
-                ->orderBy('name') // Tri par label (A1, A2, A3, etc.)
-                ->get();
+    
             if ($collaborateur->departement_id == 4) {
-                // Récupérer toutes les places
-                $places = Place::all();
+                // HR user
+                if ($departement_id !== null) {
+                    // Specific department requested
+                    $places = Place::where('departement_id', $departement_id)
+                        ->orderBy('name')
+                        ->get();
+                } else {
+                    // All places
+                    $places = Place::all();
+                }
+            } else {
+                $places = Place::where('departement_id', $collaborateur->departement_id)
+                    ->orderBy('name')
+                    ->get();
             }
+    
             return response()->json([
                 'places' => $places->map(function ($place) {
                     return [
                         'id' => $place->id,
-                        'name' => $place->name, // Retourne A1, A2, etc.
-                        'zone' => $place->zone,  // Retourne 'Left Area' ou 'Right Area'
+                        'name' => $place->name,
+                        'zone' => $place->zone,
                     ];
                 })
             ]);

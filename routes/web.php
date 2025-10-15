@@ -142,9 +142,9 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/reservations/all', [ReservationController::class, 'index_all']);
         Route::get('/reservations/allcollaborators', [ReservationController::class, 'getAllUsers']);
         Route::get('/reservations/collaborators', [ReservationController::class, 'getDepartementUsers']);
-        Route::get('/availability/month/{year}/{month}', [ReservationController::class, 'getMonthlyAvailability']);
+        Route::get('/availability/month/{year}/{month}/{departement_id?}', [ReservationController::class, 'getMonthlyAvailability']);
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
-        Route::get('/places', [ReservationController::class, 'getPlaces']);
+        Route::get('/places/{departement_id?}', [ReservationController::class, 'getPlaces']);
         Route::get('/salles', [ReservationController::class, 'getSalles']);
         Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
