@@ -18,12 +18,14 @@ class LocalAuth
             abort(500, 'DEV_IMPERSONATE_ACCOUNT not configured in .env file');
         }
 
-        if (Auth::check()) {
-            $currentUser = Auth::user();
+        if (Auth::guard('web')->check()) {
+            $currentUser = Auth::guard('web')->user();
             if ($currentUser->account_name === $accountName) {
                 return $next($request);
             }
-            Auth::logout();
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
         }
 
         $user = Collaborateur::where('account_name', $accountName)->first();
@@ -32,7 +34,8 @@ class LocalAuth
             abort(403, "User with account_name '{$accountName}' not found in database.");
         }
         
-        Auth::login($user, true);
+        Auth::guard('web')->login($user, true);
+        $request->session()->regenerate();
         
         return $next($request);
     }
