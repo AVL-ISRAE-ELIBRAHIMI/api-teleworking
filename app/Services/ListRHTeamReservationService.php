@@ -19,14 +19,16 @@ class ListRHTeamReservationService
      */
     public function getReservationsByRH(string $rhId)
     {
-       // Pourquoi: on ignore volontairement l'RH et ses contraintes comme demandé
+        $startDate = Carbon::now()->startOfMonth();
+        $endDate = Carbon::now()->addMonth()->endOfMonth();
+        
         return Reservation::with([
                 'collaborateur',
                 'collaborateur.equipe',
                 'place.departement',
             ])
-            ->whereMonth('date_reservation', Carbon::now()->month)
-            ->whereYear('date_reservation', Carbon::now()->year)
+            ->whereBetween('date_reservation', [$startDate, $endDate])
+            ->orderBy('date_reservation', 'asc')
             ->get()
             ->map(function ($res) {
                 return [
@@ -39,7 +41,6 @@ class ListRHTeamReservationService
                     'quota'              => $res->collaborateur->quota ?? '',
                 ];
             });
-    
     }
 
     public function getAllUsers()
