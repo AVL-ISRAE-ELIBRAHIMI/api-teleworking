@@ -162,140 +162,153 @@ class ReservationController extends Controller
     }
    
     // 5. Obtenir le layout du bureau (nouvelle méthode)
-    public function getOfficeLayout()
+    // public function getOfficeLayout()
+    // {
+    //     $collaborateurId = Auth::User()->id;
+    //     $collaborateur = Collaborateur::findOrFail($collaborateurId);
+    //     return response()->json([
+    //         'departement_id' => $collaborateur->departement_id,
+    //         'office_name' => $this->getOfficeName($collaborateur->departement_id)
+    //     ]);
+    // }
+
+    // // 6. Méthode helper privée
+    // private function getOfficeName($departementId)
+    // {
+    //     return match ($departementId) {
+    //         1 => 'P2 - Merrakech',
+    //         2 => 'P1 - Casablanca',
+    //         3 => 'Standard',
+    //         default => 'Bureau Inconnu'
+    //     };
+    // }
+    // public function getPlaces($departement_id = null)
+    // {
+    //     $collaborateurId = Auth::user()->id;
+    
+    //     try {
+    //         $collaborateur = Collaborateur::findOrFail($collaborateurId);
+    
+    //         if ($collaborateur->departement_id == 4) {
+    //             // HR user
+    //             if ($departement_id !== null) {
+    //                 // Specific department requested
+    //                 $places = Place::where('departement_id', $departement_id)
+    //                     ->orderBy('name')
+    //                     ->get();
+    //             } else {
+    //                 // All places
+    //                 $places = Place::all();
+    //             }
+    //         } else {
+    //             $places = Place::where('departement_id', $collaborateur->departement_id)
+    //                 ->orderBy('name')
+    //                 ->get();
+    //         }
+    
+    //         return response()->json([
+    //             'places' => $places->map(function ($place) {
+    //                 return [
+    //                     'id' => $place->id,
+    //                     'name' => $place->name,
+    //                     'zone' => $place->zone,
+    //                 ];
+    //             })
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error' => 'Failed to fetch places',
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+    // public function getSeatBookingType()
+    // {
+    //     $collaborateur = Auth::user();
+
+    //     if (!$collaborateur) {
+    //         return response()->json(['error' => 'No authenticated user'], 401);
+    //     }
+
+    //     $componentMap = [
+    //         1 => 'SeatBookingP2',
+    //         2 => 'SeatBookingP1',
+    //         3 => 'SeatBooking',
+    //         4 => 'SeatBookingRh'
+    //     ];
+
+    //     return response()->json([
+    //         'departement_id' => $collaborateur->departement_id,
+    //         'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
+    //     ]);
+    // }
+
+    // public function is_STL()
+    // {
+    //     $collaborateurId = Auth::user()->id;
+    //     $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
+
+    //     $isSTL = $collaborateur->roles->contains('name', 'STL');
+
+    //     return response()->json(['is_STL' => $isSTL]);
+    // }
+
+    // public function getDashboardType()
+    // {
+    //     $collaborateurId = Auth::user()->id;
+
+    //     $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
+
+    //     $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
+
+    //     $dashboard = [
+    //         'RH' => 'Dashboard-RH',
+    //         'STL' => 'Dashboard-STL',
+    //         'TL' => 'Dashboard-TL',
+    //         'Collaborateur' => 'Dashboard-Collab'
+    //     ][$roleName] ?? 'Dashboard-Collab';
+
+    //     return response()->json([
+    //         'component_name' => $dashboard,
+    //         'role' => $roleName
+    //     ]);
+    // }
+
+
+       public function getOfficeLayout()
     {
-        $collaborateurId = Auth::User()->id;
-        $collaborateur = Collaborateur::findOrFail($collaborateurId);
-        return response()->json([
-            'departement_id' => $collaborateur->departement_id,
-            'office_name' => $this->getOfficeName($collaborateur->departement_id)
-        ]);
+        return response()->json($this->reservationService->getOfficeLayout());
     }
 
-    // 6. Méthode helper privée
-    private function getOfficeName($departementId)
-    {
-        return match ($departementId) {
-            1 => 'P2 - Merrakech',
-            2 => 'P1 - Casablanca',
-            3 => 'Standard',
-            default => 'Bureau Inconnu'
-        };
-    }
     public function getPlaces($departement_id = null)
     {
-        $collaborateurId = Auth::user()->id;
-    
         try {
-            $collaborateur = Collaborateur::findOrFail($collaborateurId);
-    
-            if ($collaborateur->departement_id == 4) {
-                // HR user
-                if ($departement_id !== null) {
-                    // Specific department requested
-                    $places = Place::where('departement_id', $departement_id)
-                        ->orderBy('name')
-                        ->get();
-                } else {
-                    // All places
-                    $places = Place::all();
-                }
-            } else {
-                $places = Place::where('departement_id', $collaborateur->departement_id)
-                    ->orderBy('name')
-                    ->get();
-            }
-    
-            return response()->json([
-                'places' => $places->map(function ($place) {
-                    return [
-                        'id' => $place->id,
-                        'name' => $place->name,
-                        'zone' => $place->zone,
-                    ];
-                })
-            ]);
+            $places = $this->reservationService->getPlaces($departement_id);
+            return response()->json(['places' => $places]);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Failed to fetch places',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
+
     public function getSeatBookingType()
     {
-        $collaborateur = Auth::user();
-
-        if (!$collaborateur) {
-            return response()->json(['error' => 'No authenticated user'], 401);
+        try {
+            return response()->json($this->reservationService->getSeatBookingType());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 401);
         }
-
-        $componentMap = [
-            1 => 'SeatBookingP2',
-            2 => 'SeatBookingP1',
-            3 => 'SeatBooking',
-            4 => 'SeatBookingRh'
-        ];
-
-        return response()->json([
-            'departement_id' => $collaborateur->departement_id,
-            'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
-        ]);
     }
 
     public function is_STL()
     {
-        $collaborateurId = Auth::user()->id;
-        $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
-
-        $isSTL = $collaborateur->roles->contains('name', 'STL');
-
-        return response()->json(['is_STL' => $isSTL]);
+        return response()->json(['is_STL' => $this->reservationService->isSTL()]);
     }
 
     public function getDashboardType()
     {
-        $collaborateurId = Auth::user()->id;
-
-        $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
-
-        $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
-
-        $dashboard = [
-            'RH' => 'Dashboard-RH',
-            'STL' => 'Dashboard-STL',
-            'TL' => 'Dashboard-TL',
-            'Collaborateur' => 'Dashboard-Collab'
-        ][$roleName] ?? 'Dashboard-Collab';
-
-        return response()->json([
-            'component_name' => $dashboard,
-            'role' => $roleName
-        ]);
-    }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json($this->reservationService->getDashboardType());
     }
 }
