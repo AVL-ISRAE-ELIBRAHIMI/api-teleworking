@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -28,54 +29,8 @@ use Spatie\Permission\Traits\HasRoles;
 class Collaborateur extends Authenticatable
 {
     use HasRoles; // Ajoutez ce trait
+    use HasFactory; // important pour test unitaire avec factory
 
-    //     protected $table = 'collaborateurs';
-
-    //     // 🚨 Ajout obligatoire pour utiliser des UUIDs comme clés primaires
-    //     public $incrementing = false;
-    //     protected $keyType = 'string';
-
-    //     protected $casts = [
-    //         'departement_id' => 'int',
-    //         'equipe_id' => 'int',
-    //     ];
-
-    //     protected $fillable = [
-    //         'nom',
-    //         'prenom',
-    //         'manager',
-    //         'email',
-    //         'departement_id',
-    //         'equipe_id',
-    //         'activity'
-    //     ];
-
-    //     // 🚨 Génération automatique de l’UUID lors de la création
-    //     protected static function boot()
-    //     {
-    //         parent::boot();
-
-    //         static::creating(function ($model) {
-    //             if (empty($model->{$model->getKeyName()})) {
-    //                 $model->{$model->getKeyName()} = (string) Str::uuid();
-    //             }
-    //         });
-    //     }
-
-    //     public function reservations()
-    //     {
-    //         return $this->hasMany(Reservation::class, 'collaborateur_id');
-    //     }
-
-    //     public function departement()
-    //     {
-    //         return $this->belongsTo(Departement::class, 'departement_id');
-    //     }
-
-    //     public function equipe()
-    //     {
-    //         return $this->belongsTo(Equipe::class, 'equipe_id');
-    //     }
     protected $table = 'collaborateurs';
 
     // Tell Laravel that the primary key is not an auto-incrementing integer
@@ -87,11 +42,6 @@ class Collaborateur extends Authenticatable
     // Disable remember token functionality
     protected $rememberTokenName = null;
 
-    protected $casts = [
-        // No longer need to cast these as they are strings now
-        // 'departement_id' => 'int',
-        // 'equipe_id' => 'int'
-    ];
 
     protected $fillable = [
         'id',
