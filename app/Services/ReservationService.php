@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\Collaborateur;
+use App\Models\OverrideReservation;
 use App\Models\Reservation;
 use App\Models\Place;
 use Carbon\Carbon;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ReservationService
 {
@@ -32,7 +33,7 @@ class ReservationService
 
         $places = $placesQuery
             ->with(['reservations' => function ($query) use ($firstDay, $lastDay) {
-                $query->whereBetween('date_reservation', [$firstDay, $lastDay])
+                $query->whereBetween('date_reservation', [$firstDay, $lastDay])->whereNull('deleted_at')
                     ->with('collaborateur');
             }])
             ->get();
@@ -102,6 +103,7 @@ class ReservationService
 
         return $reservations;
     }
+
     public function getCalendarDays(int $year, int $month): array
     {
         $date = Carbon::create($year, $month, 1);
@@ -119,7 +121,7 @@ class ReservationService
 
         return $days;
     }
-     public function getOfficeLayout()
+    public function getOfficeLayout()
     {
         $collaborateurId = Auth::user()->id;
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
@@ -215,5 +217,86 @@ class ReservationService
             'component_name' => $dashboard,
             'role' => $roleName,
         ];
+    }
+
+    public function softDeleteUserDates($userId, $placeLabel, $dates)
+    {
+        // 1️⃣ Trouver la place du bon département
+        $place = Place::where('name', $placeLabel)
+            ->where('departement_id', $userId->departement_id)
+            ->first();
+
+        if (!$place) {
+            return null;
+        }
+
+        // 2️⃣ Soft delete pour chaque date
+        foreach ($dates as $date) {
+
+            // Convertir DD-MM-YYYY → YYYY-MM-DD
+            $mysqlDate = Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d');
+
+            Reservation::where('collaborateur_id', $userId->id)
+                ->where('place_id', $place->id)
+                ->where('date_reservation', $mysqlDate)
+                ->update([
+                    'deleted_at' => now(),       // ⭐ soft delete
+                    'updated_at' => now(),
+                ]);
+        }
+
+        return $place;
+    }
+
+    public function createOverride($collaboratorId, $placeId, $dates, $motif, $justification, $requestedBy)
+    {
+        foreach ($dates as $date) {
+
+            // 1️⃣ Convertir d-m-Y → Y-m-d
+            $correctFormat = date('Y-m-d', strtotime(str_replace('/', '-', $date)));
+
+            Log::info('🔍 CHECKING DATE', [
+                'original' => $date,
+                'converted' => $correctFormat
+            ]);
+
+            // 2️⃣ Chercher la réservation exacte (soft delete inclus)
+            $reservation = Reservation::where('collaborateur_id', $collaboratorId)
+                ->where('place_id', $placeId)
+                ->where('date_reservation', $correctFormat)
+                ->whereNull('deleted_at')        // IMPORTANT !!!
+                ->first();
+
+            if (!$reservation) {
+                Log::warning('⚠️ NO RESERVATION FOUND FOR DATE', [
+                    'date' => $correctFormat,
+                    'collaboratorId' => $collaboratorId,
+                    'placeId' => $placeId
+                ]);
+                continue;
+            }
+
+            Log::info('✅ RESERVATION FOUND', [
+                'reservation_id' => $reservation->id,
+                'date' => $correctFormat
+            ]);
+
+            // 3️⃣ Créer override
+            OverrideReservation::create([
+                'reservation_id' => $reservation->id,
+                'motif'          => $motif,
+                'justification'  => $justification,
+                'requested_by'   => $requestedBy,
+            ]);
+
+            Log::info('✨ OVERRIDE CREATED', [
+                'reservation_id' => $reservation->id,
+                'date'           => $correctFormat
+            ]);
+        }
+
+        Log::info('🏁 END OVERRIDE PROCESS');
+
+        return true;
     }
 }

@@ -145,8 +145,11 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/availability/month/{year}/{month}/{departement_id?}', [ReservationController::class, 'getMonthlyAvailability']);
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
         Route::get('/places/{departement_id?}', [ReservationController::class, 'getPlaces']);
-        Route::get('/salles', [ReservationController::class, 'getSalles']);
+        // supprimer reservation du user
+        Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
+        Route::middleware(['auth:sanctum'])->post('/reservations/delete-dates', [ReservationController::class, 'deleteDates']);
         Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
+        Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
         Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
 use App\Models\Place;
-use App\Models\Reservation;
 use App\Services\ListRHTeamReservationService;
 use App\Services\ListSkillTeamReservationService;
 use App\Services\ListTeamReservationService;
@@ -13,6 +12,7 @@ use App\Services\ListUserReservationService;
 use Illuminate\Http\Request;
 use App\Services\ReservationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
@@ -139,143 +139,29 @@ class ReservationController extends Controller
     public function getMonthlyAvailability($year, $month, $departement_id = null)
     {
         $collaborateurId = Auth::user()->id;
-    
+
         if (!$collaborateurId) {
             return response()->json(['error' => 'Collaborateur non identifié'], 401);
         }
-    
+
         $collaborateur = Collaborateur::findOrFail($collaborateurId);
-    
+
         if ($collaborateur->departement_id == 4) {
             $deptToQuery = $departement_id ?? 4;
         } else {
             $deptToQuery = $collaborateur->departement_id;
         }
-    
+
         $availability = $this->reservationService->getMonthlyAvailability(
             $year,
             $month,
             $deptToQuery
         );
-    
+
         return response()->json($availability);
     }
-   
-    // 5. Obtenir le layout du bureau (nouvelle méthode)
-    // public function getOfficeLayout()
-    // {
-    //     $collaborateurId = Auth::User()->id;
-    //     $collaborateur = Collaborateur::findOrFail($collaborateurId);
-    //     return response()->json([
-    //         'departement_id' => $collaborateur->departement_id,
-    //         'office_name' => $this->getOfficeName($collaborateur->departement_id)
-    //     ]);
-    // }
 
-    // // 6. Méthode helper privée
-    // private function getOfficeName($departementId)
-    // {
-    //     return match ($departementId) {
-    //         1 => 'P2 - Merrakech',
-    //         2 => 'P1 - Casablanca',
-    //         3 => 'Standard',
-    //         default => 'Bureau Inconnu'
-    //     };
-    // }
-    // public function getPlaces($departement_id = null)
-    // {
-    //     $collaborateurId = Auth::user()->id;
-    
-    //     try {
-    //         $collaborateur = Collaborateur::findOrFail($collaborateurId);
-    
-    //         if ($collaborateur->departement_id == 4) {
-    //             // HR user
-    //             if ($departement_id !== null) {
-    //                 // Specific department requested
-    //                 $places = Place::where('departement_id', $departement_id)
-    //                     ->orderBy('name')
-    //                     ->get();
-    //             } else {
-    //                 // All places
-    //                 $places = Place::all();
-    //             }
-    //         } else {
-    //             $places = Place::where('departement_id', $collaborateur->departement_id)
-    //                 ->orderBy('name')
-    //                 ->get();
-    //         }
-    
-    //         return response()->json([
-    //             'places' => $places->map(function ($place) {
-    //                 return [
-    //                     'id' => $place->id,
-    //                     'name' => $place->name,
-    //                     'zone' => $place->zone,
-    //                 ];
-    //             })
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'error' => 'Failed to fetch places',
-    //             'message' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-    // public function getSeatBookingType()
-    // {
-    //     $collaborateur = Auth::user();
-
-    //     if (!$collaborateur) {
-    //         return response()->json(['error' => 'No authenticated user'], 401);
-    //     }
-
-    //     $componentMap = [
-    //         1 => 'SeatBookingP2',
-    //         2 => 'SeatBookingP1',
-    //         3 => 'SeatBooking',
-    //         4 => 'SeatBookingRh'
-    //     ];
-
-    //     return response()->json([
-    //         'departement_id' => $collaborateur->departement_id,
-    //         'component_name' => $componentMap[$collaborateur->departement_id] ?? 'SeatBooking'
-    //     ]);
-    // }
-
-    // public function is_STL()
-    // {
-    //     $collaborateurId = Auth::user()->id;
-    //     $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
-
-    //     $isSTL = $collaborateur->roles->contains('name', 'STL');
-
-    //     return response()->json(['is_STL' => $isSTL]);
-    // }
-
-    // public function getDashboardType()
-    // {
-    //     $collaborateurId = Auth::user()->id;
-
-    //     $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
-
-    //     $roleName = $collaborateur->roles->first()->name ?? 'Collaborateur';
-
-    //     $dashboard = [
-    //         'RH' => 'Dashboard-RH',
-    //         'STL' => 'Dashboard-STL',
-    //         'TL' => 'Dashboard-TL',
-    //         'Collaborateur' => 'Dashboard-Collab'
-    //     ][$roleName] ?? 'Dashboard-Collab';
-
-    //     return response()->json([
-    //         'component_name' => $dashboard,
-    //         'role' => $roleName
-    //     ]);
-    // }
-
-
-       public function getOfficeLayout()
+    public function getOfficeLayout()
     {
         return response()->json($this->reservationService->getOfficeLayout());
     }
@@ -310,5 +196,70 @@ class ReservationController extends Controller
     public function getDashboardType()
     {
         return response()->json($this->reservationService->getDashboardType());
+    }
+
+
+    public function deleteDates(Request $request, ReservationService $service)
+    {
+        $request->validate([
+            'place_label' => 'required|string',
+            'dates' => 'required|array',
+            'dates.*' => 'date_format:d-m-Y',
+        ]);
+
+        $user = Auth::user(); // utilisateur connecté
+
+        $place = $service->softDeleteUserDates(
+            $user,
+            $request->place_label,
+            $request->dates
+        );
+
+        if (!$place) {
+            return response()->json([
+                'message' => 'Place not found for user department'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Dates soft-deleted successfully',
+            'deleted_dates' => $request->dates,
+        ]);
+    }
+
+    public function override(Request $request, ReservationService $service)
+    {
+        $request->validate([
+            'collaborator' => 'required|string',
+            'seats' => 'required|string',
+            'dates' => 'required|array',
+            'motif' => 'required|integer',
+            'justification' => 'required|string',
+        ]);
+
+        // 1️⃣ Récupérer collaborateur
+        $collaborator = Collaborateur::whereRaw("CONCAT(nom, ' ', prenom) = ?", [$request->collaborator])
+            ->firstOrFail();
+
+       
+        // 2️⃣ Trouver la place exacte
+        $place = Place::where('name', $request->seats)
+            ->where('departement_id', $collaborator->departement_id)
+            ->firstOrFail();
+
+        // 3️⃣ ID du Skill Team Leader connecté
+        $requestedBy = Auth::user()->id;
+       
+        // 4️⃣ Appeler service
+        $service->createOverride(
+            $collaborator->id,
+            $place->id,
+            $request->dates,
+            $request->motif,
+            $request->justification,
+            $requestedBy
+        );
+
+        return response()->json(['message' => 'Override request created successfully']);
     }
 }

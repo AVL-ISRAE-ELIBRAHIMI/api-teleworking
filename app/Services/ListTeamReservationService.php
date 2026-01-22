@@ -38,6 +38,7 @@ class ListTeamReservationService
     ])
         ->whereIn('collaborateur_id', $collaborateursIds)
         ->whereBetween('date_reservation', [$startDate, $endDate])
+        ->whereNull('deleted_at')
         ->orderBy('date_reservation', 'asc')
         ->get()
         ->map(function ($res) use ($equipeLabel) {

@@ -28,6 +28,7 @@ class ListRHTeamReservationService
                 'place.departement',
             ])
             ->whereBetween('date_reservation', [$startDate, $endDate])
+            ->whereNull('deleted_at')
             ->orderBy('date_reservation', 'asc')
             ->get()
             ->map(function ($res) {
