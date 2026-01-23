@@ -241,7 +241,7 @@ class ReservationController extends Controller
         $collaborator = Collaborateur::whereRaw("CONCAT(nom, ' ', prenom) = ?", [$request->collaborator])
             ->firstOrFail();
 
-       
+
         // 2️⃣ Trouver la place exacte
         $place = Place::where('name', $request->seats)
             ->where('departement_id', $collaborator->departement_id)
@@ -249,7 +249,7 @@ class ReservationController extends Controller
 
         // 3️⃣ ID du Skill Team Leader connecté
         $requestedBy = Auth::user()->id;
-       
+
         // 4️⃣ Appeler service
         $service->createOverride(
             $collaborator->id,
@@ -261,5 +261,38 @@ class ReservationController extends Controller
         );
 
         return response()->json(['message' => 'Override request created successfully']);
+    }
+
+    public function listOverrides()
+    {
+        try {
+            // Appel du service
+            $items = $this->reservationService->listOverrideRequests();
+
+            // Retour JSON
+            return response()->json($items, 200);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Failed to load override requests',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function approveOverride($id)
+    {
+        try {
+            $this->reservationService->approveOverride($id);
+
+            return response()->json([
+                'message' => 'Request approved successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error approving request.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

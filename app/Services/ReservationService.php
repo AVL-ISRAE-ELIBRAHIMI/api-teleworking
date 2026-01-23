@@ -299,4 +299,54 @@ class ReservationService
 
         return true;
     }
+
+    public function listOverrideRequests()
+    {
+        $overrides = OverrideReservation::with([
+            'requester',
+            'reservation',
+            'reservation.collaborateur'
+        ])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $overrides->map(function ($item) {
+
+            // Nettoyage date
+            $cleanDate = null;
+            if ($item->reservation && $item->reservation->date_reservation) {
+                $cleanDate = date('Y-m-d', strtotime($item->reservation->date_reservation));
+            }
+
+            return [
+                'id'            => $item->id,
+                'motif'         => $item->motif,
+                'justification' => $item->justification,
+                'date'          => $cleanDate,
+
+                'manager'       => optional($item->requester)
+                    ? trim($item->requester->prenom . ' ' . $item->requester->nom)
+                    : null,
+
+                'collaborator'  => optional(optional($item->reservation)->collaborateur)
+                    ? trim($item->reservation->collaborateur->prenom . ' ' . $item->reservation->collaborateur->nom)
+                    : null,
+            ];
+        });
+    }
+    public function approveOverride($overrideId)
+    {
+        // Charger override + reservation
+        $override = OverrideReservation::with('reservation')->findOrFail($overrideId);
+
+        // 1) Soft delete reservation
+        if ($override->reservation) {
+            $override->reservation->delete();  // soft delete
+        }
+
+        // 2) Soft delete override
+        $override->delete(); // soft delete
+
+        return true;
+    }
 }
