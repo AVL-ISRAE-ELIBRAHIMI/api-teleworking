@@ -241,7 +241,8 @@ class ReservationController extends Controller
             'seats' => 'required|string',
             'dates' => 'required|array',
             'motif' => 'required|integer',
-            'justification' => 'required|file|mimes:pdf,jpg,jpeg,png,docx|max:4096',
+            'justification' => 'nullable|file|mimes:pdf,jpg,jpeg,png,docx|max:4096',
+            'comment' => 'required|string|max:255',
         ]);
 
         // 1️ Récupérer collaborateur
@@ -258,7 +259,10 @@ class ReservationController extends Controller
         $requestedBy = Auth::user()->id;
 
         // 4️ Sauvegarde du fichier
-        $path = $request->file('justification')->store('justifications', 'public');
+        // $path = $request->file('justification')->store('justifications', 'public');
+        $path = $request->hasFile('justification')
+            ? $request->file('justification')->store('justifications', 'public')
+            : null;
 
         // 4️ Appeler service
         $service->createOverride(
@@ -267,6 +271,7 @@ class ReservationController extends Controller
             $request->dates,
             $request->motif,
             $path,
+            $request->comment,
             $requestedBy
         );
 
@@ -324,10 +329,10 @@ class ReservationController extends Controller
     public function rejectOverride(Request $request, $id, ReservationService $service)
     {
         $request->validate([
-            'comment' => 'required|string',
+            'hr_comment' => 'required|string',
         ]);
 
-        $service->rejectOverride($id, $request->comment);
+        $service->rejectOverride($id, $request->hr_comment);
 
         return response()->json([
             'message' => 'Override request rejected with comment'

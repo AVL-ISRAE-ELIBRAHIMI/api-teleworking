@@ -249,7 +249,7 @@ class ReservationService
         return $place;
     }
 
-    public function createOverride($collaboratorId, $placeId, $dates, $motif, $filePath, $requestedBy)
+    public function createOverride($collaboratorId, $placeId, $dates, $motif, $filePath, $comment, $requestedBy)
     {
         foreach ($dates as $date) {
 
@@ -275,7 +275,8 @@ class ReservationService
             OverrideReservation::create([
                 'reservation_id' => $reservation->id,
                 'motif'          => $motif,
-                'justification'  => $filePath,    //  Sauvegarder le chemin du fichier
+                'justification'  => $filePath,
+                'comment'        => $comment,
                 'requested_by'   => $requestedBy,
             ]);
 
@@ -285,7 +286,7 @@ class ReservationService
             ]);
         }
 
-        Log::info('🏁 END OVERRIDE PROCESS');
+        Log::info(' END OVERRIDE PROCESS');
 
         return true;
     }
@@ -297,7 +298,7 @@ class ReservationService
             'reservation',
             'reservation.collaborateur'
         ])
-            ->whereNotNull('comment')
+            ->whereNotNull('hr_comment')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -334,7 +335,7 @@ class ReservationService
             'reservation.collaborateur'
         ])
             ->orderBy('created_at', 'desc')
-            ->whereNull('comment')
+            ->whereNull('hr_comment')
             ->get();
 
         return $overrides->map(function ($item) {
@@ -376,11 +377,11 @@ class ReservationService
 
         return true;
     }
-    public function rejectOverride($overrideId, $comment)
+    public function rejectOverride($overrideId, $hr_comment)
     {
         $override = OverrideReservation::findOrFail($overrideId);
 
-        $override->comment = $comment;
+        $override->hr_comment = $hr_comment;
         $override->save();
 
         return true;
