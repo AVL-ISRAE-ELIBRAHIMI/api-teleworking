@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Collaborateur;
+use App\Models\OverrideReservation;
 use App\Models\Place;
 use App\Services\ListRHTeamReservationService;
 use App\Services\ListSkillTeamReservationService;
@@ -119,7 +120,7 @@ class ReservationController extends Controller
         return response()->json($reservations);
     }
 
-    // 2. Créer des réservations (déjà existante)
+    // 2. Créer des réservations 
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -135,7 +136,7 @@ class ReservationController extends Controller
             'data' => $reservations
         ], 201);
     }
-    // 4. Vérifier la disponibilité (déjà existante)
+    // 4. Vérifier la disponibilité par 2mois
     public function getMonthlyAvailability($year, $month, $departement_id = null)
     {
         $collaborateurId = Auth::user()->id;
@@ -229,40 +230,65 @@ class ReservationController extends Controller
 
     public function override(Request $request, ReservationService $service)
     {
+        // Convertir string JSON → array
+        if ($request->has('dates') && is_string($request->dates)) {
+            $request->merge([
+                'dates' => json_decode($request->dates, true)
+            ]);
+        }
         $request->validate([
             'collaborator' => 'required|string',
             'seats' => 'required|string',
             'dates' => 'required|array',
             'motif' => 'required|integer',
-            'justification' => 'required|string',
+            'justification' => 'required|file|mimes:pdf,jpg,jpeg,png,docx|max:4096',
         ]);
 
-        // 1️⃣ Récupérer collaborateur
+        // 1️ Récupérer collaborateur
         $collaborator = Collaborateur::whereRaw("CONCAT(nom, ' ', prenom) = ?", [$request->collaborator])
             ->firstOrFail();
 
 
-        // 2️⃣ Trouver la place exacte
+        // 2️ Trouver la place exacte
         $place = Place::where('name', $request->seats)
             ->where('departement_id', $collaborator->departement_id)
             ->firstOrFail();
 
-        // 3️⃣ ID du Skill Team Leader connecté
+        // 3️ ID du Skill Team Leader connecté
         $requestedBy = Auth::user()->id;
 
-        // 4️⃣ Appeler service
+        // 4️ Sauvegarde du fichier
+        $path = $request->file('justification')->store('justifications', 'public');
+
+        // 4️ Appeler service
         $service->createOverride(
             $collaborator->id,
             $place->id,
             $request->dates,
             $request->motif,
-            $request->justification,
+            $path,
             $requestedBy
         );
 
         return response()->json(['message' => 'Override request created successfully']);
     }
 
+    public function listRefusedRequests()
+    {
+        try {
+            // Appel du service
+            $items = $this->reservationService->listRefusedRequests();
+
+            // Retour JSON
+            return response()->json($items, 200);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'message' => 'Failed to load override requests',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
     public function listOverrides()
     {
         try {
@@ -294,5 +320,26 @@ class ReservationController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+    public function rejectOverride(Request $request, $id, ReservationService $service)
+    {
+        $request->validate([
+            'comment' => 'required|string',
+        ]);
+
+        $service->rejectOverride($id, $request->comment);
+
+        return response()->json([
+            'message' => 'Override request rejected with comment'
+        ]);
+    }
+
+    public function rejectByTCM($id, ReservationService $service)
+    {
+        $service->rejectOverrideByTCM($id);
+
+        return response()->json([
+            'message' => 'Override rejected by TCM'
+        ]);
     }
 }

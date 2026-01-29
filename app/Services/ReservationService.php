@@ -208,6 +208,7 @@ class ReservationService
 
         $dashboard = [
             'RH' => 'Dashboard-RH',
+            'TCM' => 'Dashboard-RH',
             'STL' => 'Dashboard-STL',
             'TL' => 'Dashboard-TL',
             'Collaborateur' => 'Dashboard-Collab',
@@ -248,7 +249,7 @@ class ReservationService
         return $place;
     }
 
-    public function createOverride($collaboratorId, $placeId, $dates, $motif, $justification, $requestedBy)
+    public function createOverride($collaboratorId, $placeId, $dates, $motif, $filePath, $requestedBy)
     {
         foreach ($dates as $date) {
 
@@ -267,25 +268,14 @@ class ReservationService
                 ->whereNull('deleted_at')        // IMPORTANT !!!
                 ->first();
 
-            if (!$reservation) {
-                Log::warning('⚠️ NO RESERVATION FOUND FOR DATE', [
-                    'date' => $correctFormat,
-                    'collaboratorId' => $collaboratorId,
-                    'placeId' => $placeId
-                ]);
-                continue;
-            }
 
-            Log::info('✅ RESERVATION FOUND', [
-                'reservation_id' => $reservation->id,
-                'date' => $correctFormat
-            ]);
+
 
             // 3️⃣ Créer override
             OverrideReservation::create([
                 'reservation_id' => $reservation->id,
                 'motif'          => $motif,
-                'justification'  => $justification,
+                'justification'  => $filePath,    //  Sauvegarder le chemin du fichier
                 'requested_by'   => $requestedBy,
             ]);
 
@@ -300,6 +290,42 @@ class ReservationService
         return true;
     }
 
+    public function listRefusedRequests()
+    {
+        $overrides = OverrideReservation::with([
+            'requester',
+            'reservation',
+            'reservation.collaborateur'
+        ])
+            ->whereNotNull('comment')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $overrides->map(function ($item) {
+
+            // Date propre
+            $cleanDate = $item->reservation
+                ? date('Y-m-d', strtotime($item->reservation->date_reservation))
+                : null;
+
+            return [
+                'id'            => $item->id,
+                'motif'         => $item->motif,
+                'justification' => $item->justification,
+                'comment'      => $item->comment,
+                'date'          => $cleanDate,
+
+                'manager'       => $item->requester
+                    ? trim($item->requester->prenom . ' ' . $item->requester->nom)
+                    : null,
+
+                'collaborator'  => $item->reservation && $item->reservation->collaborateur
+                    ? trim($item->reservation->collaborateur->prenom . ' ' . $item->reservation->collaborateur->nom)
+                    : null,
+            ];
+        });
+    }
+
     public function listOverrideRequests()
     {
         $overrides = OverrideReservation::with([
@@ -308,6 +334,7 @@ class ReservationService
             'reservation.collaborateur'
         ])
             ->orderBy('created_at', 'desc')
+            ->whereNull('comment')
             ->get();
 
         return $overrides->map(function ($item) {
@@ -346,6 +373,25 @@ class ReservationService
 
         // 2) Soft delete override
         $override->delete(); // soft delete
+
+        return true;
+    }
+    public function rejectOverride($overrideId, $comment)
+    {
+        $override = OverrideReservation::findOrFail($overrideId);
+
+        $override->comment = $comment;
+        $override->save();
+
+        return true;
+    }
+
+    public function rejectOverrideByTCM($id)
+    {
+        $override = OverrideReservation::findOrFail($id);
+
+        // On supprime seulement la dérogation
+        $override->delete();
 
         return true;
     }

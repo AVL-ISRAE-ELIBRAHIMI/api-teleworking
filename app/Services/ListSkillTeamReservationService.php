@@ -87,6 +87,7 @@ class ListSkillTeamReservationService
             ->map(function ($res) {
                 return [
                     'id' => $res->id,
+                    'collaborateur_id' => $res->collaborateur_id,
                     'date_reservation' => Carbon::parse($res->date_reservation)->format('d-m-Y'),
                     'place_label' => $res->place->name ?? '',
                     'departement_label' => $res->place->departement->label ?? '',

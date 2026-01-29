@@ -13,6 +13,7 @@ class OverrideReservation extends Model
         'reservation_id',
         'motif',
         'justification',
+        'commentaire',
         'requested_by', // UUID
     ];
 

@@ -146,6 +146,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/availability/day/{date}', [ReservationController::class, 'getDailyAvailability']);
         Route::get('/places/{departement_id?}', [ReservationController::class, 'getPlaces']);
         Route::get('/override-reservations', [ReservationController::class, 'listOverrides']);
+        Route::get('/override-reservations/refused', [ReservationController::class, 'listRefusedRequests']);
         Route::get('/seat-booking-type', [ReservationController::class, 'getSeatBookingType']);
         Route::get('/dashboard-type', [ReservationController::class, 'getDashboardType']);
         Route::get('/reservations/team', [ReservationController::class, 'index_for_team_leads']);
@@ -156,14 +157,15 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
         Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/approve', [ReservationController::class, 'approveOverride']);
+        Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/reject', [ReservationController::class, 'rejectOverride']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
         Route::middleware(['auth:sanctum'])->post('/reservations/delete-dates', [ReservationController::class, 'deleteDates']);
+        Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/tcm-reject', [ReservationController::class, 'rejectByTCM']);
         Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
-        Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
         Route::middleware(['auth:sanctum'])->post('/proxy-absences', [AbsenceProxyController::class, 'send']);
         Route::middleware(['auth:sanctum'])->put('/reservations/{id}/update-quota', [CollaborateurController::class, 'updateQuota'])->name('update-quota');
         Route::get('/quota-type', [CollaborateurController::class, 'quotaReturn']);
-
+        
 
 
         Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
