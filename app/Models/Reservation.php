@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Reservation extends Model
 {
-	    use HasFactory;
+	use HasFactory;
 
 	protected $table = 'reservations';
 
@@ -48,11 +48,15 @@ class Reservation extends Model
 	{
 		return $this->belongsTo(Collaborateur::class, 'collaborateur_id');
 	}
-	
+
 
 	public function place()
 	{
 		return $this->belongsTo(Place::class, 'place_id');
 	}
-	
+
+	public function overrideReservations()
+	{
+		return $this->hasMany(OverrideReservation::class, 'reservation_id');
+	}
 }
