@@ -8,8 +8,10 @@ use App\Http\Controllers\API\AbsenceProxyController;
 use App\Http\Controllers\API\CollaborateurController;
 use App\Http\Controllers\API\DepartementController;
 use App\Http\Controllers\API\ReservationController;
+use Database\Seeders\CollaborateurSeeder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 // Welcome page
 // Route::get('/', function () {
@@ -165,9 +167,15 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::middleware(['auth:sanctum'])->post('/proxy-absences', [AbsenceProxyController::class, 'send']);
         Route::middleware(['auth:sanctum'])->put('/reservations/{id}/update-quota', [CollaborateurController::class, 'updateQuota'])->name('update-quota');
         Route::get('/quota-type', [CollaborateurController::class, 'quotaReturn']);
+
+        //rafraichir la database collaborateurs (pour les RH)
+        Route::middleware(['auth:sanctum'])->post('/admin/collaborateurs/sync-avl', function () {
+            //  instancier directement le seeder
+            (new CollaborateurSeeder())->run();
+
+            return response()->json(['status' => 'ok']);
+        });
         
-
-
         Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
             $user = $request->user();
             return response()->json([
