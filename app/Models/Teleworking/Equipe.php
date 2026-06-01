@@ -4,36 +4,39 @@
  * Created by Reliese Model.
  */
 
-namespace App\Models;
+namespace App\Models\Teleworking;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class Departement
+ * Class Equipe
  * 
  * @property int $id
  * @property string $label
- * @property int $STL
+ * @property int $departement_id
+ * @property int $TL
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * @package App\Models
  */
-class Departement extends Model
+class Equipe extends Model
 {
-	protected $table = 'departements';
+	protected $table = 'equipes';
 
 	protected $casts = [
-		'STL' => 'int'
+		'departement_id' => 'int',
+		'TL' => 'int'
 	];
 
 	protected $fillable = [
 		'label',
-		'STL'
+		'departement_id',
+		'TL'
 	];
 	public function collaborateur()
 	{
-		return $this->hasMany(Collaborateur::class, 'departement_id');
+		return $this->hasMany(Collaborateur::class, 'equipe_id');
 	}
 }

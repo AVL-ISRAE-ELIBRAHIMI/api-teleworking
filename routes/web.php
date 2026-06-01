@@ -1,36 +1,19 @@
 <?php
-
-// use App\Http\Controllers\API\ProfilController;
-// use App\Http\Controllers\API\ReservationController;
-// use App\Http\Controllers\AuthController;
-
-use App\Http\Controllers\API\AbsenceProxyController;
-use App\Http\Controllers\API\CollaborateurController;
-use App\Http\Controllers\API\DepartementController;
-use App\Http\Controllers\API\ReservationController;
+use App\Http\Controllers\API\Teleworking\AbsenceProxyController;
+use App\Http\Controllers\API\Teleworking\CollaborateurController;
+use App\Http\Controllers\API\Teleworking\DepartementController;
+use App\Http\Controllers\API\Teleworking\ReservationController;
 use Database\Seeders\CollaborateurSeeder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
-// Welcome page
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-// Public authentication routes (no middleware needed)
-// Route::get('/login', [AuthController::class, 'login']); 
-// Route::post('/auth/validate-user', [AuthController::class, 'validateUser']);
-// Route::get('/auth/current-user', [AuthController::class, 'getCurrentUser']);
-// Route::post('/auth/logout', [AuthController::class, 'logout']);
-// Route::get('/csrf-token', function () {
-//     return response()->json(['csrf_token' => csrf_token()]);
-// });
+
 // Routes that DON'T need authentication
 Route::get('/test-db', function () {
     $accountName = env('DEV_IMPERSONATE_ACCOUNT');
 
     try {
-        $user = \App\Models\Collaborateur::where('account_name', $accountName)->first();
+        $user = \App\Models\Teleworking\Collaborateur::where('account_name', $accountName)->first();
 
         return [
             'account_name_searched' => $accountName,
@@ -42,8 +25,8 @@ Route::get('/test-db', function () {
                 'email' => $user->email,
                 'account_name' => $user->account_name
             ] : null,
-            'total_users_in_db' => \App\Models\Collaborateur::count(),
-            'users_with_account_names' => \App\Models\Collaborateur::whereNotNull('account_name')->count()
+            'total_users_in_db' => \App\Models\Teleworking\Collaborateur::count(),
+            'users_with_account_names' => \App\Models\Teleworking\Collaborateur::whereNotNull('account_name')->count()
         ];
     } catch (\Exception $e) {
         return [

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Collaborateur;
-use App\Models\OverrideReservation;
-use App\Models\Reservation;
-use App\Models\Place;
+use App\Models\Teleworking\Collaborateur;
+use App\Models\Teleworking\OverrideReservation;
+use App\Models\Teleworking\Reservation;
+use App\Models\Teleworking\Place;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;

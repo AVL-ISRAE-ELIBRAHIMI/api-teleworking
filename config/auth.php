@@ -62,7 +62,8 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-'model' => App\Models\Collaborateur::class,        ],
+            'model' => App\Models\Teleworking\Collaborateur::class,
+        ],
 
         // 'users' => [
         //     'driver' => 'database',

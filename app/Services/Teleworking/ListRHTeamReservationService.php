@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Collaborateur;
-use App\Models\Reservation;
+use App\Models\Teleworking\Collaborateur;
+use App\Models\Teleworking\Reservation;
 use Carbon\Carbon;
 
 

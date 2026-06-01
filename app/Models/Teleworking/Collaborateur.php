@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Teleworking;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 

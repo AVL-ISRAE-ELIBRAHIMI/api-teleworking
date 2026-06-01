@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Reservation;
+use App\Models\Teleworking\Reservation;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
+
 
 class ListUserReservationService
 {

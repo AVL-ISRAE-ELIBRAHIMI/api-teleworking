@@ -2,7 +2,7 @@
 // database/factories/CollaborateurFactory.php
 namespace Database\Factories;
 
-use App\Models\Collaborateur;
+use App\Models\Teleworking\Collaborateur;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 

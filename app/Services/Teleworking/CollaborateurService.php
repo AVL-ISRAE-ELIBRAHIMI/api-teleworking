@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Collaborateur;
+use App\Models\Teleworking\Collaborateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,8 +16,8 @@ class CollaborateurService
     {
         $collaborateurId = Auth::user()->id;
         $collaborateur = Collaborateur::with('roles')->find($collaborateurId);
-
-        return $collaborateur->roles->first()->name ?? null;
+        return $collaborateur->getRoleNames()->first() ?? null;
+        // return $collaborateur->roles->first()->name ?? null;
     }
 
     /**

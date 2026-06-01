@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Collaborateur;
+use App\Models\Teleworking\Collaborateur;
 use Illuminate\Support\Facades\Session;
 
 class WindowsAuthService

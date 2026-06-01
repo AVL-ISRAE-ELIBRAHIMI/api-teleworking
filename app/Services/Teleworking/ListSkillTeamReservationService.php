@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Collaborateur;
-use App\Models\Reservation;
+use App\Models\Teleworking\Collaborateur;
+use App\Models\Teleworking\Reservation;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
+
 
 class ListSkillTeamReservationService
 {

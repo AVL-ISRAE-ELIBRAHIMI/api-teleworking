@@ -1,18 +1,33 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\API\Teleworking;
 
 use App\Http\Controllers\Controller;
+use App\Services\Teleworking\ProfilService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
-class SalleController extends Controller
+class ProfilController extends Controller
 {
+    protected $profilService;
+
+    public function __construct(ProfilService $profilService)
+    {
+        $this->profilService = $profilService;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $collaborateurId = Auth::User()->id;
+        if (!$collaborateurId) {
+            return response()->json(['error' => 'Collaborateur non identifié'], 401);
+        }
+        $userData = $this->profilService->getUserProfile($collaborateurId);
+    
+        return response()->json($userData);
     }
 
     /**

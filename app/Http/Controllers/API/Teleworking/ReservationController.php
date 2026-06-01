@@ -1,30 +1,28 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\API\Teleworking;
 
 use App\Http\Controllers\Controller;
-use App\Models\Collaborateur;
-use App\Models\OverrideReservation;
-use App\Models\Place;
-use App\Services\ListRHTeamReservationService;
-use App\Services\ListSkillTeamReservationService;
-use App\Services\ListTeamReservationService;
-use App\Services\ListUserReservationService;
+use App\Models\Teleworking\Collaborateur;
+use App\Models\Teleworking\Place;
+use App\Services\Teleworking\ListRHTeamReservationService;
+use App\Services\Teleworking\ListSkillTeamReservationService;
+use App\Services\Teleworking\ListTeamReservationService;
+use App\Services\Teleworking\ListUserReservationService;
 use Illuminate\Http\Request;
-use App\Services\ReservationService;
+use App\Services\Teleworking\ReservationService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class ReservationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    protected $listReservationService;
-    protected $listTeamReservationService;
-    protected $listSkillTeamReservationService;
-    protected $reservationService;
-    protected $listRHTeamReservationService;
+    protected ListUserReservationService $listReservationService;
+    protected ListTeamReservationService $listTeamReservationService;
+    protected ListSkillTeamReservationService $listSkillTeamReservationService;
+    protected ReservationService $reservationService;
+    protected ListRHTeamReservationService $listRHTeamReservationService;
 
     public function __construct(ListSkillTeamReservationService $listSkillTeamReservationService, ListUserReservationService $listReservationService, ListTeamReservationService $listTeamReservationService, ListRHTeamReservationService $listRHTeamReservationService, ReservationService $reservationService)
     {

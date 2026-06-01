@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Collaborateur;
+use App\Models\Teleworking\Collaborateur;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

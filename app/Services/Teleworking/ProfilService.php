@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Teleworking;
 
-use App\Models\Collaborateur;
-use Illuminate\Support\Facades\Session;
+use App\Models\Teleworking\Collaborateur;
 
 class ProfilService
 {
