@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('missions', function (Blueprint $table) {
             $table->id();
-            $table->enum('lieu_depart', ['Casa', 'OUZ', 'Kenitra']);
-            $table->enum('lieu_arrivee', ['Casa', 'OUZ', 'Kenitra']);
+            $table->enum('lieu_depart', ['Maroc']);
+            $table->enum('lieu_arrivee', ['pays_arrivé']);
             $table->date('mission_date_debut');
             $table->date('mission_date_fin');
             $table->integer('nbr_jours');
