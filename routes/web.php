@@ -4,7 +4,9 @@ use App\Http\Controllers\API\Teleworking\AbsenceProxyController;
 use App\Http\Controllers\API\Teleworking\CollaborateurController;
 use App\Http\Controllers\API\Teleworking\DepartementController;
 use App\Http\Controllers\API\NDF\ExpenseReportController;
+use App\Http\Controllers\API\TAM\RequestAssetController;
 use App\Http\Controllers\API\Teleworking\ReservationController;
+use App\Http\Controllers\API\TAM\MaterielController;
 use Database\Seeders\CollaborateurSeeder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -144,6 +146,9 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/kpi', [DepartementController::class, 'reservationsStats']);
         Route::get('/kpi/stl', [DepartementController::class, 'reservationsStatsSTL']);
         Route::get('/quota-type', [CollaborateurController::class, 'quotaReturn']);
+        Route::get('/assets/available', [MaterielController::class, 'available_assets']);
+        Route::get('/assets/requests/collaborator', [RequestAssetController::class, 'collaboratorRequests']);
+        Route::get('/materiels/{materiel}/reserved-periods', [RequestAssetController::class, 'reservedPeriods']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/approve', [ReservationController::class, 'approveOverride']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/reject', [ReservationController::class, 'rejectOverride']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
@@ -152,6 +157,7 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::middleware(['auth:sanctum'])->post('/reservations', [ReservationController::class, 'store']);
         Route::middleware(['auth:sanctum'])->post('/proxy-absences', [AbsenceProxyController::class, 'send']);
         Route::middleware(['auth:sanctum'])->put('/reservations/{id}/update-quota', [CollaborateurController::class, 'updateQuota'])->name('update-quota');
+        Route::middleware(['auth:sanctum'])->post('/assets/request', [RequestAssetController::class, 'store']);
 
         Route::middleware(['auth:sanctum'])->post('/expense-reports/export', [ExpenseReportController::class, 'export'])
             ->name('expense-reports.export');
