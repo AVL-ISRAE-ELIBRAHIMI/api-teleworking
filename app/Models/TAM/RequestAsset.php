@@ -14,6 +14,8 @@ class RequestAsset extends Model
         'validator',
         'borrow_date',
         'return_date',
+        'remark',
+        'status',
     ];
 
     protected $casts = [
@@ -30,7 +32,10 @@ class RequestAsset extends Model
     {
         return $this->belongsTo(Collaborateur::class, 'requestor');
     }
-
+    public function requestorCollaborateur()
+    {
+        return $this->belongsTo(Collaborateur::class, 'requestor');
+    }
     public function validator()
     {
         return $this->belongsTo(Collaborateur::class, 'validator');

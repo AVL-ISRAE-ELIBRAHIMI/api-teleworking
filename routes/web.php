@@ -148,7 +148,9 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::get('/quota-type', [CollaborateurController::class, 'quotaReturn']);
         Route::get('/assets/available', [MaterielController::class, 'available_assets']);
         Route::get('/assets/requests/collaborator', [RequestAssetController::class, 'collaboratorRequests']);
+        Route::get('/assets/requests', [RequestAssetController::class, 'fetchRequests']);
         Route::get('/materiels/{materiel}/reserved-periods', [RequestAssetController::class, 'reservedPeriods']);
+        
         Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/approve', [ReservationController::class, 'approveOverride']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations/{id}/reject', [ReservationController::class, 'rejectOverride']);
         Route::middleware(['auth:sanctum'])->post('/override-reservations', [ReservationController::class, 'override']);
@@ -158,7 +160,10 @@ Route::middleware(['web', \App\Http\Middleware\LocalAuth::class])->group(functio
         Route::middleware(['auth:sanctum'])->post('/proxy-absences', [AbsenceProxyController::class, 'send']);
         Route::middleware(['auth:sanctum'])->put('/reservations/{id}/update-quota', [CollaborateurController::class, 'updateQuota'])->name('update-quota');
         Route::middleware(['auth:sanctum'])->post('/assets/request', [RequestAssetController::class, 'store']);
-
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::put('/assets/requests/{id}/accept', [RequestAssetController::class, 'accept'])->whereNumber('id');
+            Route::put('/assets/requests/{id}/refuse', [RequestAssetController::class, 'refuse'])->whereNumber('id');
+        });
         Route::middleware(['auth:sanctum'])->post('/expense-reports/export', [ExpenseReportController::class, 'export'])
             ->name('expense-reports.export');
 

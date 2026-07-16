@@ -4,6 +4,8 @@ namespace App\Models\TAM;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TAM\Project;
+
 
 class Materiel extends Model
 {
@@ -28,6 +30,7 @@ class Materiel extends Model
         'owner',
         'status',
         'purchaser',
+        'project_id',
         'reference_location',
     ];
 
@@ -36,4 +39,8 @@ class Materiel extends Model
         'purchase_date' => 'date',
         'serial_num'    => 'integer',
     ];
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
 }

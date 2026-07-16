@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RequestAssetService
 {
@@ -35,7 +37,7 @@ class RequestAssetService
             'return_date'   => $data['return_date'],
             'new_location'  => $data['new_location'],
             'remark'        => $data['remark'] ?? null,
-            'status'        => 'Pending', 
+            'status'        => 'Pending',
         ]);
 
         // Mise à jour du matériel avec une valeur valide de l'enum materiels
@@ -66,7 +68,7 @@ class RequestAssetService
             ->whereIn('status', $this->blockingStatuses)
             ->orderBy('borrow_date')
             ->get(['borrow_date', 'return_date'])
-            ->map(fn (RequestAsset $r) => [
+            ->map(fn(RequestAsset $r) => [
                 'start' => Carbon::parse($r->borrow_date)->format('Y-m-d'),
                 'end'   => Carbon::parse($r->return_date)->format('Y-m-d'),
             ])
@@ -100,4 +102,87 @@ class RequestAssetService
                 ];
             });
     }
+    public function fetchRequests(): Collection
+    {
+        $userId = auth()->id();
+
+        return RequestAsset::with(['materiel', 'requestorCollaborateur'])
+            ->where('status', 'Pending')
+            ->whereHas('materiel.project', function ($query) use ($userId) {
+                $query->where('responsable', $userId);
+            })
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (RequestAsset $requestAsset) {
+                $materiel = $requestAsset->materiel;
+                $requestor = $requestAsset->requestorCollaborateur;
+
+                return [
+                    'id' => $requestAsset->id,
+                    'label' => $materiel?->label,
+                    'avl_reference' => $materiel?->avl_reference ?? $materiel?->avl_ref,
+                    'serial_number' => $materiel?->serial_number ?? $materiel?->serial_num,
+                    'borrow_date' => $requestAsset->borrow_date?->format('Y-m-d'),
+                    'return_date' => $requestAsset->return_date?->format('Y-m-d'),
+                    'remark' => $requestAsset->remark,
+                    'new_location' => $requestAsset->new_location,
+                    'status' => $requestAsset->status,
+                    'requestor_nom' => $requestor?->nom,
+                    'requestor_prenom' => $requestor?->prenom,
+                ];
+            });
+    }
+
+    public function accept(int $id): RequestAsset
+    {
+        $collaborateur = Auth::user();
+
+        if (!$collaborateur) {
+            throw ValidationException::withMessages([
+                'auth' => ['Utilisateur non authentifié.'],
+            ]);
+        }
+
+        $requestAsset = RequestAsset::findOrFail($id);
+
+        if ($requestAsset->status !== 'Pending') {
+            throw ValidationException::withMessages([
+                'status' => ['Seules les demandes en attente peuvent être acceptées.'],
+            ]);
+        }
+
+        $requestAsset->status = 'Reserved';
+        $requestAsset->validator = $collaborateur->id;
+        $requestAsset->save();
+
+        return $requestAsset;
+    }
+
+    public function refuse(int $id, string $reason): RequestAsset
+    {
+        $collaborateur = Auth::user();
+
+        if (!$collaborateur) {
+            throw ValidationException::withMessages([
+                'auth' => ['Utilisateur non authentifié.'],
+            ]);
+        }
+
+        $requestAsset = RequestAsset::findOrFail($id);
+
+        if ($requestAsset->status !== 'Pending') {
+            throw ValidationException::withMessages([
+                'status' => ['Seules les demandes en attente peuvent être refusées.'],
+            ]);
+        }
+
+        $requestAsset->status = 'Rejected';
+        $requestAsset->reason = $reason;
+        $requestAsset->validator = $collaborateur->id;
+        $requestAsset->save();
+
+        return $requestAsset;
+    }
+
+   
 }

@@ -7,6 +7,7 @@ use App\Services\TAM\RequestAssetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RequestAssetController extends Controller
 {
@@ -50,4 +51,38 @@ class RequestAssetController extends Controller
             'requests' => $requests,
         ]);
     }
+    public function fetchRequests(): JsonResponse
+    {
+        $requests = $this->requestAssetService->fetchRequests();
+
+        return response()->json([
+            'requests' => $requests,
+        ]);
+    }
+
+    public function accept($id): JsonResponse
+    {
+        $requestAsset = $this->requestAssetService->accept((int) $id);
+
+        return response()->json([
+            'message' => 'Request accepted successfully.',
+            'data' => $requestAsset,
+        ]);
+    }
+
+    public function refuse(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $requestAsset = $this->requestAssetService->refuse((int) $id, $validated['reason']);
+
+        return response()->json([
+            'message' => 'Request refused successfully.',
+            'data' => $requestAsset,
+        ]);
+    }
+
+   
 }

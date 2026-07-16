@@ -2,6 +2,7 @@
 
 namespace App\Models\Teleworking;
 
+use App\Models\TAM\RequestAsset;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 use Illuminate\Support\Str;
@@ -65,6 +66,10 @@ class Collaborateur extends Authenticatable
     public function reservations()
     {
         return $this->hasMany(Reservation::class, 'collaborateur_id');
+    }
+    public function request_assets()
+    {
+        return $this->hasMany(RequestAsset::class, 'requestor');
     }
 
     public function managerUser()
