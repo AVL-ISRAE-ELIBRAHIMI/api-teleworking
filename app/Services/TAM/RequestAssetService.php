@@ -83,14 +83,16 @@ class RequestAssetService
             return collect();
         }
 
-        return RequestAsset::with('materiel')
+        return RequestAsset::with(['materiel', 'validatorCollaborateur'])
             ->where('requestor', $collaborateur->id)
             ->orderByDesc('created_at')
             ->get()
             ->map(function (RequestAsset $requestAsset) {
                 $materiel = $requestAsset->materiel;
+                $validator = $requestAsset->validatorCollaborateur;
 
                 return [
+                    'id' => $requestAsset->id,
                     'label' => $materiel?->label,
                     'avl_reference' => $materiel?->avl_reference ?? $materiel?->avl_ref,
                     'serial_number' => $materiel?->serial_number ?? $materiel?->serial_num,
@@ -99,12 +101,14 @@ class RequestAssetService
                     'remark' => $requestAsset->remark,
                     'new_location' => $requestAsset->new_location,
                     'status' => $requestAsset->status,
+                    'validator' => $validator ? $validator->nom . ' ' . $validator->prenom : null,
                 ];
             });
     }
+
     public function fetchRequests(): Collection
     {
-        $userId = auth()->id();
+        $userId = Auth::user()->id;
 
         return RequestAsset::with(['materiel', 'requestorCollaborateur'])
             ->where('status', 'Pending')
@@ -184,5 +188,47 @@ class RequestAssetService
         return $requestAsset;
     }
 
-   
+    public function cancelRequest($requestId, $userId)
+    {
+        $requestAsset = RequestAsset::where('id', $requestId)
+            ->where('requestor', auth()->id())
+            ->firstOrFail();
+        if (strtolower(trim($requestAsset->status)) !== 'pending') {
+            throw new \Exception('Only pending requests can be cancelled.');
+        }
+
+        $requestAsset->delete();
+
+        return response()->json(['success' => true, 'message' => 'Request cancelled and deleted successfully.']);
+    }
+
+    public function historyRequests(): Collection
+    {
+        $userId = Auth::user()->id;
+
+        return RequestAsset::with(['materiel', 'requestorCollaborateur'])
+            ->whereHas('materiel.project', function ($query) use ($userId) {
+                $query->where('responsable', $userId);
+            })
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (RequestAsset $requestAsset) {
+                $materiel = $requestAsset->materiel;
+                $requestor = $requestAsset->requestorCollaborateur;
+
+                return [
+                    'id' => $requestAsset->id,
+                    'label' => $materiel?->label,
+                    'avl_reference' => $materiel?->avl_reference ?? $materiel?->avl_ref,
+                    'serial_number' => $materiel?->serial_number ?? $materiel?->serial_num,
+                    'borrow_date' => $requestAsset->borrow_date?->format('Y-m-d'),
+                    'return_date' => $requestAsset->return_date?->format('Y-m-d'),
+                    'remark' => $requestAsset->remark,
+                    'new_location' => $requestAsset->new_location,
+                    'status' => $requestAsset->status,
+                    'requestor_nom' => $requestor?->nom,
+                    'requestor_prenom' => $requestor?->prenom,
+                ];
+            });
+    }
 }

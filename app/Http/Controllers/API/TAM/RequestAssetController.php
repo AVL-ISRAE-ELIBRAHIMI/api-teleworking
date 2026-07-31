@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\TAM\RequestAssetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class RequestAssetController extends Controller
 {
@@ -33,6 +32,7 @@ class RequestAssetController extends Controller
             'data' => $requestAsset,
         ], 201);
     }
+
     public function reservedPeriods(int $materiel): JsonResponse
     {
         $periods = $this->requestAssetService->reservedPeriods($materiel);
@@ -42,7 +42,6 @@ class RequestAssetController extends Controller
         ]);
     }
 
-
     public function collaboratorRequests(): JsonResponse
     {
         $requests = $this->requestAssetService->collaboratorRequests();
@@ -51,9 +50,18 @@ class RequestAssetController extends Controller
             'requests' => $requests,
         ]);
     }
+    
     public function fetchRequests(): JsonResponse
     {
         $requests = $this->requestAssetService->fetchRequests();
+
+        return response()->json([
+            'requests' => $requests,
+        ]);
+    }
+    public function historyRequests(): JsonResponse
+    {
+        $requests = $this->requestAssetService->historyRequests();
 
         return response()->json([
             'requests' => $requests,
@@ -84,5 +92,23 @@ class RequestAssetController extends Controller
         ]);
     }
 
-   
+    public function cancel(Request $request, $requestId)
+    {
+        try {
+            $this->requestAssetService->cancelRequest(
+                $requestId,
+                Auth::user()->id // ✅ récupère l’ID de l’utilisateur connecté
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Request cancelled successfully.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
 }

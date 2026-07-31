@@ -36,8 +36,8 @@ class RequestAsset extends Model
     {
         return $this->belongsTo(Collaborateur::class, 'requestor');
     }
-    public function validator()
+    public function validatorCollaborateur()
     {
-        return $this->belongsTo(Collaborateur::class, 'validator');
+        return $this->belongsTo(Collaborateur::class, 'validator', 'id');
     }
 }
