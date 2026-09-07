@@ -5,11 +5,14 @@ namespace App\Services\TAM;
 use App\Models\TAM\Materiel;
 use App\Models\TAM\RequestAsset;
 use App\Exceptions\ReservationConflictException;
+use App\Mail\NewRequestNotification;
+use App\Models\TAM\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class RequestAssetService
@@ -29,6 +32,7 @@ class RequestAssetService
             );
         }
 
+        // Création de la demande
         $requestAsset = RequestAsset::create([
             'materiel_id'   => $data['materiel_id'],
             'requestor'     => $data['requestor'] ?? $collaborateur?->id,
@@ -40,10 +44,17 @@ class RequestAssetService
             'status'        => 'Pending',
         ]);
 
-        // Mise à jour du matériel avec une valeur valide de l'enum materiels
+        // Mise à jour du matériel
         $materiel = Materiel::findOrFail($data['materiel_id']);
-        $materiel->status = 'reserved'; //
-        $materiel->save();
+        $materiel->update(['status' => 'reserved']);
+        // Charger le projet avec son responsable (objet Collaborateur)
+        $project = Project::with('responsableCollaborateur')->findOrFail($materiel->project_id);
+        $responsable = $project->responsableCollaborateur;
+
+        if ($responsable && $responsable->email) {
+            Mail::to($responsable->email)
+                ->send(new NewRequestNotification($requestAsset, $responsable));
+        } 
 
         return $requestAsset;
     }

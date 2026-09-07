@@ -19,7 +19,7 @@ class ExpenseReportExcelService
         // On ne touche plus au header du template
         $this->fillRows($sheet, $users);
 
-        $fileName = 'expense_reports_' . now()->format('Y_m_d_His') . '.xlsx';
+        $fileName = 'Fichier NDF STELLANTIS_' . now()->format('Y_m_d_His') . '.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);

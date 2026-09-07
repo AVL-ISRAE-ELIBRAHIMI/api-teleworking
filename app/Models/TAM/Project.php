@@ -21,4 +21,11 @@ class Project extends Model
     {
         return $this->belongsTo(Collaborateur::class, 'responsable');
     }
+
+
+    // Relation renommée pour éviter le conflit
+    public function responsableCollaborateur()
+    {
+        return $this->belongsTo(Collaborateur::class, 'responsable');
+    }
 }
